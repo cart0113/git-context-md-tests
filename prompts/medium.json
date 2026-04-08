@@ -1,0 +1,12 @@
+[
+  {
+    "id": "rate-limiter-dependency",
+    "prompt": "I want to add a request-level rate limiter that works as a dependency. It should track request counts per client IP using an in-memory dict, and raise `HTTPException(429)` when the limit is exceeded. It needs to clean up its tracking state after each request completes, even if the endpoint raises an error. Implement this as a yield dependency in a new file `fastapi/dependencies/rate_limit.py` and add a test in `tests/test_rate_limit.py` that verifies the cleanup happens.",
+    "what_it_tests": "Yield dependencies, request vs function scope, AsyncExitStack lifecycle, dependency_overrides for testing. The agent needs dependency_injection/resolution_flow.md then scoping_and_caching/exit_stack_lifecycle.md."
+  },
+  {
+    "id": "oauth2-scope-wiring",
+    "prompt": "Add a new security dependency `require_scope(scope_name: str)` that returns a dependency function which checks that the current user's token includes the given scope. Wire it so that the required scopes show up correctly in the OpenAPI docs Authorize dialog. Add it to `fastapi/security/scopes.py`.",
+    "what_it_tests": "OAuth2 scope propagation through the dependency tree, Security() vs Depends() distinction, how security definitions get into OpenAPI. Requires security/scope_propagation.md and openapi_docs/schema_generation.md."
+  }
+]

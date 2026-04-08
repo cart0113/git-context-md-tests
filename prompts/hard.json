@@ -1,0 +1,12 @@
+[
+  {
+    "id": "cross-cutting-param-middleware",
+    "prompt": "Add a custom middleware that logs the total number of validated request parameters (path + query + body fields) for each request. The count should be available as a response header `X-Param-Count`. Don't count internal framework params like `request` or `response`.",
+    "what_it_tests": "Cross-cutting concern spanning middleware stack ordering (request_pipeline/middleware_stack.md) and parameter classification (parameter_handling/classification.md). Requires understanding from multiple context-db folders."
+  },
+  {
+    "id": "vendored-starlette-hook",
+    "prompt": "The `request_response()` function in `routing.py` is a vendored copy from Starlette. I need to add a hook that fires after dependency resolution but before the endpoint function runs. Where exactly should this go and what would the implementation look like? Write the code.",
+    "what_it_tests": "Understanding vendored code boundaries (starlette_relationship/vendored_code.md) plus request flow (request_pipeline/request_flow.md). Without context, the agent might not realize this is vendored and try to subclass instead."
+  }
+]

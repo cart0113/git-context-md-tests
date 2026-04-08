@@ -1,0 +1,124 @@
+[
+  {
+    "prompt_id": "health-endpoint",
+    "difficulty": "easy",
+    "prompt": "Add a new endpoint `GET /health` that returns `{\"status\": \"ok\"}` and is excluded from the OpenAPI docs. Add it to a separate `APIRouter` in a new file `fastapi/routes/health.py` and include it in the main `FastAPI` app setup.",
+    "model": "opus",
+    "run": 1,
+    "timestamp": "2026-04-08T17:55:11.221197",
+    "with": {
+      "cost_usd": 0.4008212500000001,
+      "duration_ms": 74200,
+      "duration_api_ms": 73339,
+      "num_turns": 25,
+      "input_tokens": 136,
+      "output_tokens": 2983,
+      "cache_read_tokens": 428520,
+      "cache_create_tokens": 17809,
+      "stop_reason": "end_turn"
+    },
+    "with_raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 74200,
+      "duration_api_ms": 73339,
+      "num_turns": 25,
+      "result": "Done. Here's what I added:\n\n- **`fastapi/routes/__init__.py`** \u2014 empty package init\n- **`fastapi/routes/health.py`** \u2014 defines an `APIRouter` with a `GET /health` endpoint that returns `{\"status\": \"ok\"}` and is excluded from OpenAPI docs via `include_in_schema=False`\n- **`fastapi/applications.py:1102-1104`** \u2014 imports and includes the health router in `FastAPI.setup()`, so it's registered on every app instance before the docs routes",
+      "stop_reason": "end_turn",
+      "session_id": "e70805dc-ecf7-4214-8688-8e5e62037261",
+      "total_cost_usd": 0.4008212500000001,
+      "usage": {
+        "input_tokens": 136,
+        "cache_creation_input_tokens": 17809,
+        "cache_read_input_tokens": 428520,
+        "output_tokens": 2983,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 17809
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6": {
+          "inputTokens": 136,
+          "outputTokens": 2983,
+          "cacheReadInputTokens": 428520,
+          "cacheCreationInputTokens": 17809,
+          "webSearchRequests": 0,
+          "costUSD": 0.4008212500000001,
+          "contextWindow": 200000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "uuid": "c145fbe5-39ed-4e66-b09a-760b5451a2a7"
+    },
+    "without": {
+      "cost_usd": 0.376287,
+      "duration_ms": 102115,
+      "duration_api_ms": 100127,
+      "num_turns": 31,
+      "input_tokens": 27,
+      "output_tokens": 5071,
+      "cache_read_tokens": 259754,
+      "cache_create_tokens": 19120,
+      "stop_reason": "end_turn"
+    },
+    "without_raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 102115,
+      "duration_api_ms": 100127,
+      "num_turns": 31,
+      "result": "All checks pass. Here's a summary of the changes:\n\n### New files\n\n**`fastapi/routes/__init__.py`** \u2014 empty file to make `routes` a Python package.\n\n**`fastapi/routes/health.py`** \u2014 defines a dedicated `APIRouter` with a single `GET /health` endpoint that returns `{\"status\": \"ok\"}` and is excluded from the OpenAPI schema (`include_in_schema=False`). Imports are from `fastapi.routing` and `starlette.responses` (rather than `fastapi`) to avoid a circular import, since this module is loaded during `fastapi.applications` initialization.\n\n### Modified file\n\n**`fastapi/applications.py`**\n1. Added `from fastapi.routes.health import router as health_router` to the imports.\n2. Added `self.include_router(health_router)` at the end of `FastAPI.setup()`, so the health router is registered on every `FastAPI` app instance automatically.",
+      "stop_reason": "end_turn",
+      "session_id": "2b9d26ed-e963-495d-92e7-28faf233b8ea",
+      "total_cost_usd": 0.376287,
+      "usage": {
+        "input_tokens": 27,
+        "cache_creation_input_tokens": 19120,
+        "cache_read_input_tokens": 259754,
+        "output_tokens": 5071,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 19120
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6": {
+          "inputTokens": 27,
+          "outputTokens": 5071,
+          "cacheReadInputTokens": 259754,
+          "cacheCreationInputTokens": 19120,
+          "webSearchRequests": 0,
+          "costUSD": 0.376287,
+          "contextWindow": 200000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "uuid": "5a697ba3-8084-4dfb-962a-34a82df8ba3d"
+    }
+  }
+]

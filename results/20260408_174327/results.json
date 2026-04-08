@@ -1,0 +1,32 @@
+[
+  {
+    "prompt_id": "vendored-starlette-hook",
+    "difficulty": "hard",
+    "prompt": "The `request_response()` function in `routing.py` is a vendored copy from Starlette. I need to add a hook that fires after dependency resolution but before the endpoint function runs. Where exactly should this go and what would the implementation look like? Write the code.",
+    "model": "opus",
+    "run": 1,
+    "timestamp": "2026-04-08T17:43:27.351096",
+    "with": {
+      "cost_usd": 0.76464025,
+      "duration_ms": 128961,
+      "duration_api_ms": 128139,
+      "num_turns": 38,
+      "input_tokens": 30,
+      "output_tokens": 6431,
+      "cache_read_tokens": 764243,
+      "cache_create_tokens": 35455,
+      "stop_reason": "end_turn"
+    },
+    "without": {
+      "cost_usd": 1.1039455,
+      "duration_ms": 235898,
+      "duration_api_ms": 234357,
+      "num_turns": 57,
+      "input_tokens": 38,
+      "output_tokens": 16286,
+      "cache_read_tokens": 809436,
+      "cache_create_tokens": 46702,
+      "stop_reason": "end_turn"
+    }
+  }
+]

@@ -1,0 +1,124 @@
+[
+  {
+    "prompt_id": "vendored-starlette-hook",
+    "difficulty": "hard",
+    "prompt": "The `request_response()` function in `routing.py` is a vendored copy from Starlette. I need to add a hook that fires after dependency resolution but before the endpoint function runs. Where exactly should this go and what would the implementation look like? Write the code.",
+    "model": "opus",
+    "run": 1,
+    "timestamp": "2026-04-08T17:43:27.351096",
+    "with": {
+      "cost_usd": 0.76464025,
+      "duration_ms": 128961,
+      "duration_api_ms": 128139,
+      "num_turns": 38,
+      "input_tokens": 30,
+      "output_tokens": 6431,
+      "cache_read_tokens": 764243,
+      "cache_create_tokens": 35455,
+      "stop_reason": "end_turn"
+    },
+    "with_raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 128961,
+      "duration_api_ms": 128139,
+      "num_turns": 38,
+      "result": "Everything is wired up. Here's a summary of the changes:\n\n## What was changed\n\nFour edits to `fastapi/routing.py`:\n\n### 1. `get_request_handler()` signature (line 368)\nAdded `before_endpoint` parameter \u2014 an optional async-or-sync callback:\n```python\nbefore_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None] | None] | None = None,\n```\n\n### 2. Hook invocation (line 470)\nInserted inside the `if not errors:` block, **after** `solve_dependencies()` returns and **before** any of the four endpoint call paths (SSE stream, JSONL stream, raw streaming, normal):\n```python\nif before_endpoint is not None:\n    result = before_endpoint(request, solved_result.values)\n    if inspect.isawaitable(result):\n        await result\n```\nThis uses `inspect.isawaitable()` (already imported) so the callback can be sync or async.\n\n### 3. `APIRoute.__init__()` signature (line 849)\nAdded matching `before_endpoint` parameter, stored as `self.before_endpoint` (line 894).\n\n### 4. `APIRoute.get_route_handler()` (line 1005)\nPasses `self.before_endpoint` through to `get_request_handler()`.\n\n## Why this location\n\nThe `if not errors:` block at line 469 is the single chokepoint between dependency resolution and endpoint execution. All four endpoint invocation paths (SSE, JSONL, raw streaming, normal `run_endpoint_function`) branch out below this point. Placing the hook here means it fires exactly once per request, regardless of endpoint type, and has access to the fully resolved `solved_result.values` dict \u2014 you can inspect or mutate the resolved dependencies before they're unpacked into the endpoint call.\n\n## Usage\n\n```python\nasync def my_hook(request: Request, values: dict[str, Any]) -> None:\n    # values contains all resolved dependencies + extracted params\n    print(f\"About to call endpoint with: {list(values.keys())}\")\n\napp = FastAPI()\n\n@app.get(\"/items/{item_id}\", before_endpoint=my_hook)\nasync def get_item(item_id: int, db: Session = Depends(get_db)):\n    ...\n```",
+      "stop_reason": "end_turn",
+      "session_id": "ce5b8bbe-22e8-4cd3-95d8-628536ea8076",
+      "total_cost_usd": 0.76464025,
+      "usage": {
+        "input_tokens": 30,
+        "cache_creation_input_tokens": 35455,
+        "cache_read_input_tokens": 764243,
+        "output_tokens": 6431,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 35455
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6": {
+          "inputTokens": 30,
+          "outputTokens": 6431,
+          "cacheReadInputTokens": 764243,
+          "cacheCreationInputTokens": 35455,
+          "webSearchRequests": 0,
+          "costUSD": 0.76464025,
+          "contextWindow": 200000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "uuid": "d1e119a3-a257-456d-918a-47bfd593284b"
+    },
+    "without": {
+      "cost_usd": 1.1039455,
+      "duration_ms": 235898,
+      "duration_api_ms": 234357,
+      "num_turns": 57,
+      "input_tokens": 38,
+      "output_tokens": 16286,
+      "cache_read_tokens": 809436,
+      "cache_create_tokens": 46702,
+      "stop_reason": "end_turn"
+    },
+    "without_raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 235898,
+      "duration_api_ms": 234357,
+      "num_turns": 57,
+      "result": "Everything is in place. Let me provide a summary of the complete architecture.\n\n---\n\nHere's what was done and how it all fits together:\n\n## The hook location: `get_request_handler()` inner `app()`, lines 469-470\n\nThe exact insertion point is inside `get_request_handler()`'s inner `async def app(request)` function. The execution flow at this point is:\n\n```\nrequest arrives\n  \u2192 body is parsed (lines 403-450)\n  \u2192 solve_dependencies() runs (line 458)     \u2190 dependencies resolved\n  \u2192 errors are checked (line 468)\n  \u2192 before_endpoint(request, values) fires    \u2190 THE HOOK (line 469-470)\n  \u2192 endpoint function executes (line 501+)    \u2190 actual user code\n```\n\nThis was already implemented at the core level. The hook:\n\n```python\nif before_endpoint is not None:\n    await before_endpoint(request, solved_result.values)\n```\n\nfires **after** `solve_dependencies()` has resolved all `Depends(...)` parameters into `solved_result.values`, **after** validation errors are checked (so you know the request is valid), and **before** any of the four endpoint dispatch paths (SSE stream, JSONL stream, raw generator stream, or regular return).\n\n## What was missing & what was added\n\nThe `before_endpoint` parameter was already accepted by:\n- `get_request_handler()` (the engine)\n- `APIRoute.__init__()` (the route object)\n\nBut it was **not plumbed through the public API**. The changes add `before_endpoint` to:\n\n| Method | Role |\n|---|---|\n| `APIRouter.add_api_route()` | Programmatic route registration |\n| `APIRouter.api_route()` | The `@router.api_route()` decorator |\n| `APIRouter.get()` | `@router.get()` |\n| `APIRouter.put()` | `@router.put()` |\n| `APIRouter.post()` | `@router.post()` |\n| `APIRouter.delete()` | `@router.delete()` |\n| `APIRouter.options()` | `@router.options()` |\n| `APIRouter.head()` | `@router.head()` |\n| `APIRouter.patch()` | `@router.patch()` |\n| `APIRouter.trace()` | `@router.trace()` |\n\n## Usage example\n\n```python\nfrom fastapi import FastAPI, Request\n\napp = FastAPI()\n\nasync def log_resolved_deps(request: Request, values: dict[str, Any]) -> None:\n    \"\"\"Fires after DI, before the endpoint.\"\"\"\n    user = values.get(\"current_user\")\n    print(f\"User {user.id} hitting {request.url.path}\")\n\n@app.get(\"/items/{item_id}\", before_endpoint=log_resolved_deps)\nasync def read_item(item_id: int, current_user: User = Depends(get_current_user)):\n    return {\"item_id\": item_id, \"owner\": current_user.name}\n```\n\nThe callback signature is `async (Request, dict[str, Any]) -> None`. The `values` dict contains the fully-resolved keyword arguments that will be unpacked into the endpoint \u2014 path params, query params, body fields, and dependency return values, all keyed by parameter name.",
+      "stop_reason": "end_turn",
+      "session_id": "19fc409e-c2d5-468c-9a69-b4ba3b6fcf3d",
+      "total_cost_usd": 1.1039455,
+      "usage": {
+        "input_tokens": 38,
+        "cache_creation_input_tokens": 46702,
+        "cache_read_input_tokens": 809436,
+        "output_tokens": 16286,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 46702
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6": {
+          "inputTokens": 38,
+          "outputTokens": 16286,
+          "cacheReadInputTokens": 809436,
+          "cacheCreationInputTokens": 46702,
+          "webSearchRequests": 0,
+          "costUSD": 1.1039455,
+          "contextWindow": 200000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "uuid": "e6393383-0ce4-4473-91ab-49c86c757989"
+    }
+  }
+]
