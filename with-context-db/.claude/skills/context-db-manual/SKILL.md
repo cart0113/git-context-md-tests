@@ -9,33 +9,35 @@ allowed-tools: Bash Read
 ## What context-db is
 
 `context-db/` is a hierarchical Markdown knowledge base that lives in the
-project repo. It contains big-picture architecture, design rationale, change
-patterns, and non-obvious gotchas — things you can't easily derive from reading
-the code alone.
+project repo. It contains everything you need to understand this project —
+architecture, conventions, standards, domain context, design decisions, user
+preferences. Think of it as the project's long-term memory.
 
 Every `.md` file has YAML frontmatter with a `description` field. A script reads
 those descriptions and generates a table of contents for any folder. You browse
 the TOC, read only what's relevant, and move on.
 
-## What context-db is NOT
+## Why this matters
 
-Context-db is not a substitute for the code. It should never duplicate
-information that's already readable in the source:
+You are starting a conversation with no prior context. The knowledge base exists
+so you don't have to rediscover what the team already knows. Reading it first
+means you write code that fits the project's patterns, follow the right
+conventions, and avoid repeating past mistakes.
 
-- **Don't** describe how functions work — the code is the spec
-- **Don't** list function signatures or exact line numbers — they go stale
-- **Don't** document what the code does step-by-step — read the code
-- **Do** explain WHY decisions were made (not derivable from code)
-- **Do** document cross-cutting patterns that span multiple files
-- **Do** call out non-obvious gotchas and surprises
-- **Do** provide a file map so agents know where to start looking
+Skip it and you'll waste tokens guessing at things that are already documented.
 
-The goal is one source of truth: the code. Context-db provides the map and the
-"why" — the code provides the "what" and "how". If an agent can get the story
-by reading the code, don't repeat it in context-db.
+## Context-db entries about code
 
-**Context-db is a starting point, not the full picture.** Always corroborate
-context-db knowledge against the actual source before implementing changes.
+Context-db is a starting point, not a substitute for reading the code. It gets
+you to the right part of the codebase and tells you things you can't learn from
+the code alone (why decisions were made, patterns that span multiple files,
+surprises that would bite you). Always read the actual code before implementing
+changes.
+
+When writing about code, include enough to get a reader or agent to the right
+place without grepping — file paths, function names, and for large files, a
+section map (`filename:lineno — description`). If the information is already
+clear from reading the code, don't repeat it here.
 
 ## How to read it
 
@@ -70,29 +72,8 @@ Two file types:
 - **Folder descriptions** (`<folder-name>.md`) — frontmatter only, no body.
   Registers the folder in the parent TOC.
 
-Descriptions must be accurate, complete summaries — not titles. An agent must be
+Descriptions must be accurate, complete summaries — not titles. A reader or agent must be
 able to judge relevance without opening the file.
-
-**When referencing code, point to file paths and function names** (e.g.,
-"look at `solve_dependencies()` in `fastapi/dependencies/utils.py`"). This
-gives agents a grep target. Don't include line numbers — they shift with every
-edit.
-
-### What belongs in context-db
-
-- Architecture maps — which files own which concerns
-- Design decisions — why things are the way they are
-- Change patterns — how to make common types of modifications across files
-- Gotchas — non-obvious behaviors that are correct but surprising
-- Pointers — file paths and function names so agents know where to look
-
-### What does NOT belong in context-db
-
-- How functions work (read the code)
-- Function signatures (read the code)
-- Step-by-step flows that mirror the code (read the code)
-- Line numbers (they go stale)
-- Anything an agent can learn by reading the source file
 
 ### Where to put new content
 

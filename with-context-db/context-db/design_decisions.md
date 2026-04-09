@@ -36,6 +36,7 @@ so dependency cleanup happens after response is sent.
 ## Why body params get embedded
 
 When an endpoint has multiple body params, they're wrapped in a synthetic
-object (`{"item": {...}, "user": {...}}`). Adding a second body param changes
-the request schema shape — this is a common source of user confusion. The
-logic is in `_should_embed_body_fields()` in `fastapi/dependencies/utils.py`.
+object so each param has a key. This is by design — there's no other way to
+distinguish which JSON fields belong to which param. See `gotchas.md` for why
+this surprises people. Logic is in `_should_embed_body_fields()` in
+`fastapi/dependencies/utils.py`.

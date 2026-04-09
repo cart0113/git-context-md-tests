@@ -6,19 +6,32 @@ description: File map, class hierarchy, and which files own which concerns — s
 
 ## File map
 
-- `fastapi/applications.py` — `FastAPI` class (subclasses Starlette),
-  `include_router()`, docs endpoint setup, middleware stack builder
-- `fastapi/routing.py` — the big file. Contains `APIRoute`, `APIRouter`,
-  `get_request_handler()` (the request pipeline), `request_response()`
-  (vendored from Starlette), and all HTTP method decorators
+- `fastapi/applications.py` — `FastAPI` class, `include_router()`, docs
+  endpoint setup, middleware stack builder (see section map below)
+- `fastapi/routing.py` — `APIRoute`, `APIRouter`, `get_request_handler()`,
+  `request_response()`, HTTP method decorators (see section map below)
 - `fastapi/dependencies/utils.py` — `solve_dependencies()`,
   `get_dependant()`, `analyze_param()`, parameter extraction and validation
-- `fastapi/dependencies/models.py` — `Dependant` dataclass (the dependency
-  tree node)
+- `fastapi/dependencies/models.py` — `Dependant` dataclass
 - `fastapi/openapi/utils.py` — `get_openapi()` schema generation
 - `fastapi/openapi/docs.py` — Swagger UI and ReDoc HTML rendering
-- `fastapi/security/` — OAuth2, HTTP auth, API key classes (all are
-  dependencies that extract credentials from requests)
+- `fastapi/security/` — OAuth2, HTTP auth, API key classes
+
+## Section map: `fastapi/routing.py` (~5000 lines)
+
+- `routing.py:97` — `request_response()` (vendored from Starlette)
+- `routing.py:320` — `run_endpoint_function()`
+- `routing.py:351` — `get_request_handler()` (the critical request pipeline)
+- `routing.py:817` — `APIRoute` class
+- `routing.py:987` — `APIRoute.get_route_handler()`
+- `routing.py:1015` — `APIRouter` class
+- `routing.py:1346` — `APIRouter.add_api_route()`
+- `routing.py:1841–4966` — HTTP method decorators (`.get()`, `.post()`, etc.)
+
+## Section map: `fastapi/applications.py` (~4700 lines)
+
+- `applications.py:41` — `FastAPI` class
+- `applications.py:1362` — `include_router()`
 
 ## Class hierarchy
 
