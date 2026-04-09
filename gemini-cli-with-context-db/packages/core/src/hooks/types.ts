@@ -52,8 +52,6 @@ export enum HookEventName {
   BeforeModel = 'BeforeModel',
   AfterModel = 'AfterModel',
   BeforeToolSelection = 'BeforeToolSelection',
-  ToolTiming = 'ToolTiming',
-  ToolBlocked = 'ToolBlocked',
 }
 
 /**
@@ -720,42 +718,6 @@ export interface BeforeToolSelectionOutput extends HookOutput {
   hookSpecificOutput?: {
     hookEventName: 'BeforeToolSelection';
     toolConfig?: HookToolConfig;
-  };
-}
-
-/**
- * ToolTiming hook input
- */
-export interface ToolTimingInput extends HookInput {
-  tool_name: string;
-  duration_ms: number;
-  cached: boolean;
-}
-
-/**
- * ToolTiming hook output
- */
-export interface ToolTimingOutput extends HookOutput {
-  hookSpecificOutput?: {
-    hookEventName: 'ToolTiming';
-  };
-}
-
-/**
- * ToolBlocked hook input
- */
-export interface ToolBlockedInput extends HookInput {
-  tool_name: string;
-  denial_reason: string;
-  policy_rule_name: string;
-}
-
-/**
- * ToolBlocked hook output
- */
-export interface ToolBlockedOutput extends HookOutput {
-  hookSpecificOutput?: {
-    hookEventName: 'ToolBlocked';
   };
 }
 

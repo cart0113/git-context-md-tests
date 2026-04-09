@@ -379,42 +379,6 @@ export class HookSystem {
     }
   }
 
-  async fireToolTimingEvent(
-    toolName: string,
-    durationMs: number,
-    cached: boolean,
-  ): Promise<DefaultHookOutput | undefined> {
-    try {
-      const result = await this.hookEventHandler.fireToolTimingEvent(
-        toolName,
-        durationMs,
-        cached,
-      );
-      return result.finalOutput;
-    } catch (error) {
-      debugLogger.debug(`ToolTimingEvent failed for ${toolName}:`, error);
-      return undefined;
-    }
-  }
-
-  async fireToolBlockedEvent(
-    toolName: string,
-    denialReason: string,
-    policyRuleName: string,
-  ): Promise<DefaultHookOutput | undefined> {
-    try {
-      const result = await this.hookEventHandler.fireToolBlockedEvent(
-        toolName,
-        denialReason,
-        policyRuleName,
-      );
-      return result.finalOutput;
-    } catch (error) {
-      debugLogger.debug(`ToolBlockedEvent failed for ${toolName}:`, error);
-      return undefined;
-    }
-  }
-
   async fireBeforeToolEvent(
     toolName: string,
     toolInput: Record<string, unknown>,

@@ -104,9 +104,6 @@ export class HookAggregator {
           outputs as BeforeToolSelectionOutput[],
         );
 
-      case HookEventName.ToolTiming:
-        return this.mergeSimple(outputs);
-
       default:
         // For other events, use simple merge
         return this.mergeSimple(outputs);

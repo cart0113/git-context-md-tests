@@ -154,18 +154,11 @@ export async function executeToolWithHooks(
 
   // Execute the actual tool. Tools that support backgrounding can optionally
   // surface an execution ID via the callback.
-  const startTime = Date.now();
   const toolResult: ToolResult = await invocation.execute(
     signal,
     liveOutputCallback,
     options,
   );
-  const durationMs = Date.now() - startTime;
-
-  // Fire ToolTiming event
-  if (hookSystem) {
-    await hookSystem.fireToolTimingEvent(toolName, durationMs, false);
-  }
 
   // Append notification if parameters were modified
   if (inputWasModified) {

@@ -632,18 +632,6 @@ export class Scheduler {
         rule,
       );
 
-      // Fire ToolBlocked hook from the policy evaluation path
-      const hookSystem = this.config.getHookSystem();
-      if (hookSystem) {
-        const denialReason = rule?.denyMessage || 'Tool execution denied by policy';
-        const policyRuleName = rule?.name || 'unnamed';
-        await hookSystem.fireToolBlockedEvent(
-          toolCall.request.name,
-          denialReason,
-          policyRuleName,
-        );
-      }
-
       this.state.updateStatus(
         callId,
         CoreToolCallStatus.Error,

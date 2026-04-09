@@ -23,8 +23,6 @@ import {
   type BeforeModelInput,
   type AfterModelInput,
   type BeforeToolSelectionInput,
-  type ToolTimingInput,
-  type ToolBlockedInput,
   type NotificationType,
   type SessionStartSource,
   type SessionEndReason,
@@ -276,44 +274,6 @@ export class HookEventHandler {
       undefined,
       llmRequest,
     );
-  }
-
-  /**
-   * Fire a ToolTiming event
-   */
-  async fireToolTimingEvent(
-    toolName: string,
-    durationMs: number,
-    cached: boolean,
-  ): Promise<AggregatedHookResult> {
-    const input: ToolTimingInput = {
-      ...this.createBaseInput(HookEventName.ToolTiming),
-      tool_name: toolName,
-      duration_ms: durationMs,
-      cached,
-    };
-
-    const context: HookEventContext = { toolName };
-    return this.executeHooks(HookEventName.ToolTiming, input, context);
-  }
-
-  /**
-   * Fire a ToolBlocked event
-   */
-  async fireToolBlockedEvent(
-    toolName: string,
-    denialReason: string,
-    policyRuleName: string,
-  ): Promise<AggregatedHookResult> {
-    const input: ToolBlockedInput = {
-      ...this.createBaseInput(HookEventName.ToolBlocked),
-      tool_name: toolName,
-      denial_reason: denialReason,
-      policy_rule_name: policyRuleName,
-    };
-
-    const context: HookEventContext = { toolName };
-    return this.executeHooks(HookEventName.ToolBlocked, input, context);
   }
 
   /**

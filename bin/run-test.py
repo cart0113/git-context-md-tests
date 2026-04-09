@@ -143,6 +143,8 @@ def print_comparison(results: list[dict]) -> None:
 
         for variant in ("with", "without"):
             metrics = entry.get(variant, {})
+            if not metrics:
+                continue
             if "error" in metrics:
                 print(f"{prompt_id:<30} {variant:<10} {'ERROR':>8} "
                       f"{metrics['error']}")
