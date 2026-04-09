@@ -632,6 +632,16 @@ export class Scheduler {
         rule,
       );
 
+      // Fire ToolBlocked hook from the policy evaluation path
+      const hookSystem = this.config.getHookSystem();
+      if (hookSystem) {
+        await hookSystem.fireToolBlockedEvent(
+          toolCall.request.name,
+          errorMessage,
+          rule?.name ?? 'unknown',
+        );
+      }
+
       this.state.updateStatus(
         callId,
         CoreToolCallStatus.Error,

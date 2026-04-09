@@ -397,6 +397,24 @@ export class HookSystem {
     }
   }
 
+  async fireToolBlockedEvent(
+    toolName: string,
+    denialReason: string,
+    policyRuleName: string,
+  ): Promise<DefaultHookOutput | undefined> {
+    try {
+      const result = await this.hookEventHandler.fireToolBlockedEvent(
+        toolName,
+        denialReason,
+        policyRuleName,
+      );
+      return result.finalOutput;
+    } catch (error) {
+      debugLogger.debug(`ToolBlockedEvent failed for ${toolName}:`, error);
+      return undefined;
+    }
+  }
+
   async fireBeforeToolEvent(
     toolName: string,
     toolInput: Record<string, unknown>,

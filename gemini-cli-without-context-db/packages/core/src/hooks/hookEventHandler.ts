@@ -24,6 +24,7 @@ import {
   type AfterModelInput,
   type BeforeToolSelectionInput,
   type ToolTimingInput,
+  type ToolBlockedInput,
   type NotificationType,
   type SessionStartSource,
   type SessionEndReason,
@@ -294,6 +295,25 @@ export class HookEventHandler {
 
     const context: HookEventContext = { toolName };
     return this.executeHooks(HookEventName.ToolTiming, input, context);
+  }
+
+  /**
+   * Fire a ToolBlocked event — when the policy engine denies a tool call
+   */
+  async fireToolBlockedEvent(
+    toolName: string,
+    denialReason: string,
+    policyRuleName: string,
+  ): Promise<AggregatedHookResult> {
+    const input: ToolBlockedInput = {
+      ...this.createBaseInput(HookEventName.ToolBlocked),
+      tool_name: toolName,
+      denial_reason: denialReason,
+      policy_rule_name: policyRuleName,
+    };
+
+    const context: HookEventContext = { toolName };
+    return this.executeHooks(HookEventName.ToolBlocked, input, context);
   }
 
   /**

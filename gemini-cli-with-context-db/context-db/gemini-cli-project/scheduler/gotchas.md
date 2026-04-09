@@ -1,58 +1,27 @@
 ---
 description:
-  Non-obvious traps in tool scheduling, parallel execution, confirmation loops,
-  state management, and prompt construction
+  Traps when modifying the scheduler — tool ordering invariant, parallel
+  execution default, sandbox recursion, and prompt model dependency
 ---
 
 # Scheduler Gotchas
 
 ## UPDATE_TOPIC is always sorted first in a batch
 
-Forced to front of every batch. Reordering requests that bypass _startBatch()
-causes stale context for subsequent tools.
+Forced to front of every batch. Any code that reorders tool requests must
+preserve this invariant or subsequent tools get stale context.
 
 ## Tools are parallelized by default
 
-Contiguous parallelizable tools run via Promise.all(). No ordering guarantee
-unless wait_for_previous: true is set. Tools writing the same file can race.
+Contiguous parallelizable tools run via `Promise.all()`. Tools writing the
+same file can race. Set `wait_for_previous: true` in tool args to serialize.
 
-## Sandbox expansion is recursive
+## Sandbox expansion calls _execute() recursively
 
-_execute() calls itself. state.updateArgs() MUST be called BEFORE
-resolveConfirmation() — wrong order means stale invocation in state.
+`state.updateArgs()` MUST be called BEFORE `resolveConfirmation()` inside the
+expansion path. Wrong order = stale invocation fetched from state.
 
-## Batch lifecycle is ephemeral
+## System prompt changes silently on model downgrade
 
-completedBatch is cleared at batch start AND in the finally block. Consume
-completedCalls synchronously before next turn.
-
-## State manager updates are fire-and-forget
-
-emitUpdate() is not awaited. UI and internal state can diverge if MessageBus
-listener is slow.
-
-## Confirmation loop rebuilds tool invocation
-
-User edits via editor rebuild with tool.build(modifiedInput). Edits are NOT
-validated until next loop iteration.
-
-## Tail call preserves original request name
-
-originalRequestName must be set on FIRST call. If not set, intermediate tool
-names leak to the LLM.
-
-## System prompt snippets depend on model
-
-promptProvider selects snippets or legacySnippets based on model. Model
-downgrade silently changes prompt structure. Not automatic — requires explicit
-rebuild.
-
-## Section guards can silently disable features
-
-withSection() checks GEMINI_SECTION_* env vars. Disabled sections vanish from
-system prompt with no warning. Hard to debug if you do not know about it.
-
-## MessageBus subscription is deduplicated globally
-
-Scheduler.subscribedMessageBuses is a static WeakSet. Each bus gets listeners
-once across all instances.
+`promptProvider` selects `snippets` or `legacySnippets` based on model.
+Flash fallback silently changes the entire prompt structure with no rebuild.
