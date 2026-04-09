@@ -3,5 +3,10 @@
     "id": "add-before-tool-timing-hook-event",
     "prompt": "Add a new hook event type called `ToolTiming` that fires after every tool execution with the tool name, execution duration in milliseconds, and whether the tool was cached. Follow the existing hook event patterns. Do not write or run tests. Do not commit.",
     "what_it_tests": "Requires following the 6-step checklist for adding a hook event type: types.ts enum, hookSystem.ts fire method, hookEventHandler.ts mapping, hookPlanner.ts planning, and invocation from the scheduler. The gotchas about hook stdout parsing and the design decision about hooks as external processes are relevant context."
+  },
+  {
+    "id": "add-tool-blocked-hook-event",
+    "prompt": "Add a new hook event type called `ToolBlocked` that fires when the policy engine denies a tool call. It should include the tool name, the denial reason string, and the name of the policy rule that triggered the denial. Wire it so the hook fires from the policy evaluation path, not from the tool execution path. Follow existing hook event patterns. Do not write or run tests. Do not commit.",
+    "what_it_tests": "Requires understanding the tool execution flow (policy fires BEFORE hooks), finding where policy denials happen in the policy engine, and adding a hook invocation there — a different invocation point than other hooks. The architecture.md documents the flow order. The checklist covers hook event creation but the invocation site requires understanding the policy-hook boundary."
   }
 ]
