@@ -153,9 +153,8 @@ Respond in EXACTLY this JSON format, nothing else:
         "claude", "-p", judge_prompt,
         "--output-format", "json",
         "--model", model,
-        "--max-budget-usd", "0.50",
         "--no-session-persistence",
-        "--bare",
+        "--dangerously-skip-permissions",
     ]
 
     try:
