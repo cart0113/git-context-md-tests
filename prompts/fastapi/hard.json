@@ -1,7 +1,7 @@
 [
   {
-    "id": "asyncexitstack-locations",
-    "prompt": "Where does FastAPI create the two AsyncExitStack instances that manage yield dependency cleanup? Give the file path, function name, and line number for each.",
-    "what_it_tests": "Requires understanding the two-stack design (request-scoped vs function-scoped) documented in dependency_injection/scoping_and_caching/exit_stack_lifecycle.md and the vendored request_response() in starlette_relationship/vendored_code.md. Not trivially greppable — you need to know what to look for."
+    "id": "add-request-timing-header",
+    "prompt": "Add a new parameter `include_timing` to FastAPI route decorators (e.g., `@app.get('/foo', include_timing=True)`) that, when enabled, adds an `X-Process-Time` response header showing how long dependency resolution + endpoint execution took in milliseconds. Thread it through the full registration chain so it works from decorators, `add_api_route()`, `APIRoute`, and `get_request_handler()`. Do not write or run tests.",
+    "what_it_tests": "Requires threading a parameter through the 6-level registration chain documented in change_patterns.md. The agent must modify routing.py, applications.py, and understand the request lifecycle. Without context-db, finding the full chain in a 5000-line file is hard."
   }
 ]
