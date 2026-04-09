@@ -1,7 +1,7 @@
 [
   {
-    "id": "add-request-timing-header",
-    "prompt": "Add a new parameter `include_timing` to FastAPI route decorators (e.g., `@app.get('/foo', include_timing=True)`) that, when enabled, adds an `X-Process-Time` response header showing how long dependency resolution + endpoint execution took in milliseconds. Thread it through the full registration chain so it works from decorators, `add_api_route()`, `APIRoute`, and `get_request_handler()`. Do not write or run tests.",
-    "what_it_tests": "Requires threading a parameter through the 6-level registration chain documented in change_patterns.md. The agent must modify routing.py, applications.py, and understand the request lifecycle. Without context-db, finding the full chain in a 5000-line file is hard."
+    "id": "add-before-endpoint-hook",
+    "prompt": "Add a `before_endpoint` callback parameter to `APIRoute` that fires after dependency resolution but before the endpoint function runs. It should receive the resolved dependency values dict and the request. Thread it through `APIRoute.__init__()`, `get_route_handler()`, and `get_request_handler()` only — don't add it to decorators or FastAPI class. Do not write or run tests.",
+    "what_it_tests": "Requires finding 3 functions in routing.py (5000 lines) and understanding where in the request lifecycle to insert the hook. The architecture.md section map and request lifecycle diagram point directly to the right lines. Without context-db, the agent has to navigate a huge file blind."
   }
 ]
