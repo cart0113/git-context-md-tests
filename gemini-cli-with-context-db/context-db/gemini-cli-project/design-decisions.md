@@ -59,3 +59,11 @@ tier 5. Extensions override defaults but not workspace or user preferences. This
 five-tier hierarchy acknowledges that extensions are more specific than
 built-ins, workspace project config overrides extensions, explicit user
 configuration overrides workspace, and admin policies override everything.
+
+See also:
+
+- [Hooks overview docs](../../docs/hooks/index.md) — user-facing hook concepts.
+- [Extension authoring docs](../../docs/extensions/index.md) — user-facing
+  extension architecture.
+- [Policy engine docs](../../docs/reference/policy-engine.md) — user-facing
+  policy reference including tier system.

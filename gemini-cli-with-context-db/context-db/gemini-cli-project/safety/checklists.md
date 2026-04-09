@@ -42,3 +42,12 @@ description:
 2. Update `ContextBuilder` in `packages/core/src/safety/context-builder.ts`.
 3. Conseca's extractor assumes `context.history.turns` exists — verify
    compatibility.
+
+See also:
+
+- [built-in.ts](../../../packages/core/src/safety/built-in.ts) —
+  `InProcessChecker` interface.
+- [registry.ts](../../../packages/core/src/safety/registry.ts) —
+  `getBuiltInInProcessCheckers` registration.
+- [checker-runner.ts](../../../packages/core/src/safety/checker-runner.ts) —
+  execution engine, timeouts, fail-closed paths.

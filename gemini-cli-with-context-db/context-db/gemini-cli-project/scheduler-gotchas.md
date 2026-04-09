@@ -13,18 +13,22 @@ preserve this invariant or subsequent tools get stale context.
 
 ## Tools are parallelized by default
 
-Contiguous parallelizable tools run via `Promise.all()`. Tools writing the
-same file can race. Set `wait_for_previous: true` in tool args to serialize.
+Contiguous parallelizable tools run via `Promise.all()`. Tools writing the same
+file can race. Set `wait_for_previous: true` in tool args to serialize.
 
-## Sandbox expansion calls _execute() recursively
+## Sandbox expansion calls \_execute() recursively
 
 `state.updateArgs()` MUST be called BEFORE `resolveConfirmation()` inside the
 expansion path. Wrong order = stale invocation fetched from state.
 
 ## System prompt changes silently on model downgrade
 
-`promptProvider` selects `snippets` or `legacySnippets` based on model.
-Flash fallback silently changes the entire prompt structure with no rebuild.
+`promptProvider` selects `snippets` or `legacySnippets` based on model. Flash
+fallback silently changes the entire prompt structure with no rebuild.
 
-See also: [Prompt construction gotchas](prompts/gotchas.md) for snippet
-duplication traps.
+See also:
+
+- [Prompt construction gotchas](prompts/gotchas.md) for snippet duplication
+  traps.
+- [scheduler.ts](../../packages/core/src/scheduler/scheduler.ts) — tool
+  ordering, batch execution, sandbox expansion implementation.

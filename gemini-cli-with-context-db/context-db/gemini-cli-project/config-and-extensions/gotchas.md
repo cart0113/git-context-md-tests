@@ -34,6 +34,13 @@ as "myskill".
 Rules removed by `source` field on extension stop. Two extensions sharing a
 source ID breaks cleanup.
 
-See also: [Policy and hook gotchas](../policy-and-hooks/gotchas.md) for MCP tool
-naming, policy priority math, and tool registration traps — MCP-related gotchas
-span both files.
+See also:
+
+- [Policy and hook gotchas](../policy-and-hooks/gotchas.md) for MCP tool naming,
+  policy priority math, and tool registration traps — MCP-related gotchas span
+  both files.
+- [mcp-client-manager.ts](../../../packages/core/src/tools/mcp-client-manager.ts)
+  — clientKey hash implementation and MCP server lifecycle.
+- [Extension docs](../../../docs/extensions/writing-extensions.md) — user-facing
+  extension authoring guide.
+- [Skills docs](../../../docs/cli/skills.md) — user-facing skill configuration.

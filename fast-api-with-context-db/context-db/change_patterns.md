@@ -1,5 +1,7 @@
 ---
-description: Patterns for making changes — parameter threading chain, adding new route options. Read this before modifying the request pipeline.
+description:
+  Patterns for making changes — parameter threading chain, dependency scoping,
+  testing with overrides. Read this before modifying the request pipeline.
 ---
 
 # Change Patterns
@@ -24,17 +26,18 @@ The chain:
 6. **Corresponding methods on `FastAPI`** in `fastapi/applications.py` —
    delegate to the router
 
-Search for an existing parameter like `strict_content_type` to see the
-pattern end-to-end.
+Search for an existing parameter like `strict_content_type` to see the pattern
+end-to-end. See `architecture.md` for line-level locations in the section map.
 
 ## Adding a new dependency scope
 
 Dependencies can be `"request"` or `"function"` scoped. The scope determines
-which `AsyncExitStack` the generator is entered on. Look at how
-`_solve_generator()` in `fastapi/dependencies/utils.py` picks the stack.
+which `AsyncExitStack` the generator is entered on. The selection happens in
+`solve_dependencies()` in `fastapi/dependencies/utils.py` — it checks
+`sub_dependant.scope` and passes the appropriate stack to `_solve_generator()`.
 
 ## Testing with dependency_overrides
 
 `app.dependency_overrides` looks up overrides by **identity** (the original
-callable object), not by name. You must reference the exact same function
-object used in `Depends()`. Overrides apply transitively.
+callable object), not by name. You must reference the exact same function object
+used in `Depends()`. Overrides apply transitively.

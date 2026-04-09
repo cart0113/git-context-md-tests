@@ -1,5 +1,7 @@
 ---
-description: Non-obvious behaviors that are correct but surprising — body embedding, cache keys, schema caching, scope restrictions
+description:
+  Non-obvious behaviors that are correct but surprising — body embedding, cache
+  keys, schema caching, scope restrictions, strict content-type
 ---
 
 # Gotchas
@@ -10,12 +12,13 @@ Adding a second body parameter to an endpoint silently changes the request
 schema from flat (`{"name": "foo"}`) to nested
 (`{"item": {"name": "foo"}, "user": {...}}`). OpenAPI docs update but clients
 break. Check `_should_embed_body_fields()` in `fastapi/dependencies/utils.py`.
+See `design_decisions.md` for the rationale behind this behavior.
 
 ## Dependency cache key includes OAuth scopes
 
 The cache key is `(callable, tuple(scopes), scope)`. The same dependency
-function resolves separately when used with different `Security()` scopes.
-This is in `solve_dependencies()` in `fastapi/dependencies/utils.py`.
+function resolves separately when used with different `Security()` scopes. This
+is in `solve_dependencies()` in `fastapi/dependencies/utils.py`.
 
 ## OpenAPI schema caching
 
@@ -26,12 +29,13 @@ the cache (`app.openapi_schema = None`).
 ## Generator scope restrictions
 
 A request-scoped generator dependency cannot depend on a function-scoped
-dependency. `get_dependant()` raises `DependencyScopeError` for this case.
-The request-scoped generator outlives the function scope, so its
-function-scoped dependency would already be cleaned up.
+dependency. `get_dependant()` raises `DependencyScopeError` for this case. The
+request-scoped generator outlives the function scope, so its function-scoped
+dependency would already be cleaned up. See `change_patterns.md` for how scoping
+and stack selection work.
 
 ## Strict content-type is on by default
 
 `strict_content_type=True` (default) rejects requests without a proper
-`content-type` header. This is intentional CSRF protection but surprises
-people testing with curl without `-H "Content-Type: application/json"`.
+`content-type` header. This is intentional CSRF protection but surprises people
+testing with curl without `-H "Content-Type: application/json"`.

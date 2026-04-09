@@ -15,6 +15,8 @@ import json
 import os
 import subprocess
 import sys
+import threading
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -27,38 +29,56 @@ PROJECTS = {
     "fastapi": {
         "with": PROJECT_ROOT / "fast-api-with-context-db",
         "without": PROJECT_ROOT / "fast-api-without-context-db",
-        "source_dirs": ["fastapi", "fastapi-slim", "tests", "docs", "docs_src", "scripts"],
     },
     "oddo": {
         "with": PROJECT_ROOT / "od-do-with-context-db",
         "without": PROJECT_ROOT / "od-do-without-context-db",
-        "source_dirs": ["src", "diagram_libs", "tests", "examples", "docs"],
     },
     "gemini-cli": {
         "with": PROJECT_ROOT / "gemini-cli-with-context-db",
         "without": PROJECT_ROOT / "gemini-cli-without-context-db",
-        "source_dirs": ["packages", "evals", "integration-tests", "scripts", "sea", "schemas"],
     },
 }
 
 
-def reset_folder(folder: Path, source_dirs: list[str]) -> None:
-    """Reset all tracked files and remove untracked files in the folder."""
-    # Restore all tracked files to committed state
-    subprocess.run(
-        ["git", "checkout", "--", str(folder)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
+def reset_folder(folder: Path) -> None:
+    """Reset folder to clean git state and verify it worked."""
+    name = folder.name
+
+    # 1. Hard reset tracked files
+    r = subprocess.run(
+        ["git", "checkout", "--", "."],
+        cwd=folder, capture_output=True, text=True,
     )
-    # Remove untracked files (new files the agent created)
-    # Exclude .claude (symlink) and context-db (our knowledge base)
-    subprocess.run(
+    if r.returncode != 0:
+        print(f"  ⚠ git checkout failed in {name}: {r.stderr.strip()}", flush=True)
+
+    # 2. Remove untracked files (preserve .claude, context-db, node_modules)
+    r = subprocess.run(
         ["git", "clean", "-fd",
          "--exclude=.claude", "--exclude=context-db/",
-         str(folder)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
+         "--exclude=node_modules/"],
+        cwd=folder, capture_output=True, text=True,
     )
+    if r.returncode != 0:
+        print(f"  ⚠ git clean failed in {name}: {r.stderr.strip()}", flush=True)
+
+    # 3. Verify — git status should show nothing dirty (except excluded dirs)
+    r = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=folder, capture_output=True, text=True,
+    )
+    dirty = [
+        line for line in r.stdout.strip().splitlines()
+        if line and not any(x in line for x in [".claude", "context-db/", "node_modules/"])
+    ]
+    if dirty:
+        print(f"  ✗ RESET FAILED — {name} still has dirty files:", flush=True)
+        for line in dirty:
+            print(f"    {line}", flush=True)
+        sys.exit(1)
+    else:
+        print(f"  ✓ {name} reset to clean state", flush=True)
 
 
 def load_prompts(project: str) -> list[dict]:
@@ -72,12 +92,16 @@ def load_prompts(project: str) -> list[dict]:
         return json.load(f)
 
 
+EDIT_TOOLS = {"Edit", "Write", "NotebookEdit", "MultiEdit"}
+
+
 def run_claude(prompt: str, cwd: Path, model: str, budget: float) -> dict:
-    """Run a single claude -p invocation and return parsed JSON result."""
+    """Run claude -p with stream-json, printing live activity and capturing metrics."""
     cmd = [
         "claude",
         "-p", prompt,
-        "--output-format", "json",
+        "--output-format", "stream-json",
+        "--verbose",
         "--model", model,
         "--no-session-persistence",
         "--dangerously-skip-permissions",
@@ -86,34 +110,99 @@ def run_claude(prompt: str, cwd: Path, model: str, budget: float) -> dict:
     if budget > 0:
         cmd.extend(["--max-budget-usd", str(budget)])
 
+    start_time = time.time()
+    first_edit_seconds = None
+    result_event = None
 
-    result = subprocess.run(
+    proc = subprocess.Popen(
         cmd,
         cwd=cwd,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
     )
 
-    if result.returncode != 0:
+    # Stream stderr in background (for any warnings/errors)
+    def drain_stderr():
+        for line in proc.stderr:
+            print(line, end="", file=sys.stderr, flush=True)
+
+    stderr_thread = threading.Thread(target=drain_stderr, daemon=True)
+    stderr_thread.start()
+
+    # Read stream-json events from stdout line by line
+    for line in proc.stdout:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        etype = event.get("type", "")
+        elapsed = time.time() - start_time
+
+        if etype == "assistant":
+            msg = event.get("message", {})
+            for block in msg.get("content", []):
+                btype = block.get("type", "")
+                if btype == "tool_use":
+                    tool = block.get("name", "")
+                    ts = f"[{elapsed:6.1f}s]"
+                    if tool in EDIT_TOOLS:
+                        fpath = block.get("input", {}).get("file_path", "")
+                        short = os.path.basename(fpath) if fpath else ""
+                        if first_edit_seconds is None:
+                            first_edit_seconds = elapsed
+                            print(f"  {ts}  ** FIRST EDIT ** {tool} {short}", flush=True)
+                        else:
+                            print(f"  {ts}  {tool} {short}", flush=True)
+                    elif tool in ("Read", "Glob", "Grep", "Bash"):
+                        target = ""
+                        inp = block.get("input", {})
+                        target = (inp.get("file_path") or inp.get("pattern")
+                                  or inp.get("command", "") or "")
+                        print(f"  {ts}  {tool} {target}", flush=True)
+                    else:
+                        print(f"  {ts}  {tool}", flush=True)
+                elif btype == "text":
+                    # Show first 120 chars of text responses
+                    text = block.get("text", "")
+                    if text:
+                        preview = text[:120].replace("\n", " ")
+                        print(f"  [{elapsed:6.1f}s]  ... {preview}", flush=True)
+
+        elif etype == "result":
+            result_event = event
+
+    proc.wait()
+    stderr_thread.join(timeout=5)
+
+    wall_seconds = time.time() - start_time
+
+    if result_event is None:
         return {
-            "error": "non-zero exit",
-            "returncode": result.returncode,
-            "stderr": result.stderr[:500],
+            "error": "no result event in stream",
+            "returncode": proc.returncode,
+            "_wall_seconds": wall_seconds,
+            "_first_edit_seconds": first_edit_seconds,
         }
 
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return {
-            "error": "invalid JSON",
-            "stdout_preview": result.stdout[:500],
-        }
+    # Reshape result_event to match what extract_metrics expects
+    result_event["_wall_seconds"] = wall_seconds
+    result_event["_first_edit_seconds"] = first_edit_seconds
+    return result_event
 
 
 def extract_metrics(raw: dict) -> dict:
     """Pull the metrics we care about from Claude's JSON output."""
     if "error" in raw:
-        return {"error": raw["error"]}
+        return {
+            "error": raw["error"],
+            "wall_seconds": raw.get("_wall_seconds"),
+            "first_edit_seconds": raw.get("_first_edit_seconds"),
+        }
 
     usage = raw.get("usage", {})
     return {
@@ -127,16 +216,18 @@ def extract_metrics(raw: dict) -> dict:
         "cache_create_tokens": usage.get("cache_creation_input_tokens", 0),
         "stop_reason": raw.get("stop_reason", ""),
         "result_text": raw.get("result", ""),
+        "wall_seconds": raw.get("_wall_seconds"),
+        "first_edit_seconds": raw.get("_first_edit_seconds"),
     }
 
 
 
 def print_comparison(results: list[dict]) -> None:
     """Print a formatted comparison table."""
-    print("\n" + "=" * 90)
+    print("\n" + "=" * 105)
     print(f"{'PROMPT':<30} {'VARIANT':<10} {'COST':>8} {'TOKENS IN':>10} "
-          f"{'TOKENS OUT':>10} {'TURNS':>6} {'TIME (s)':>9}")
-    print("=" * 90)
+          f"{'TOKENS OUT':>10} {'TURNS':>6} {'1ST EDIT':>9} {'TOTAL':>9}")
+    print("=" * 105)
 
     for entry in results:
         prompt_id = entry["prompt_id"]
@@ -152,11 +243,14 @@ def print_comparison(results: list[dict]) -> None:
 
             cost = f"${metrics['cost_usd']:.4f}"
             time_s = f"{metrics['duration_ms'] / 1000:.1f}"
+            fe = metrics.get("first_edit_seconds")
+            fe_s = f"{fe:.0f}s" if fe else "—"
 
             print(f"{prompt_id:<30} {variant:<10} {cost:>8} "
                   f"{metrics['input_tokens']:>10,} "
                   f"{metrics['output_tokens']:>10,} "
                   f"{metrics['num_turns']:>6} "
+                  f"{fe_s:>9} "
                   f"{time_s:>9}")
 
         # Print delta row
@@ -169,13 +263,22 @@ def print_comparison(results: list[dict]) -> None:
             turn_diff = w.get("num_turns", 0) - wo.get("num_turns", 0)
             time_diff = (w.get("duration_ms", 0) - wo.get("duration_ms", 0)) / 1000
 
+            # First-edit delta
+            fe_w = w.get("first_edit_seconds")
+            fe_wo = wo.get("first_edit_seconds")
+            if fe_w and fe_wo:
+                fe_diff = f"{fe_w - fe_wo:+.0f}s"
+            else:
+                fe_diff = ""
+
             sign = lambda v: f"+{v}" if v > 0 else str(v)
             print(f"  delta                        {'':>10} "
                   f"{'':>8} {sign(token_diff):>10} "
                   f"{'':>10} {sign(turn_diff):>6} "
+                  f"{fe_diff:>9} "
                   f"{sign(round(time_diff, 1)):>9}")
 
-        print("-" * 90)
+        print("-" * 105)
 
     # Summary
     with_costs = [e["with"]["cost_usd"] for e in results
@@ -236,8 +339,6 @@ def main():
         "with": project_config["with"],
         "without": project_config["without"],
     }
-    source_dirs = project_config["source_dirs"]
-
     prompts = load_prompts(args.project)
 
     if args.prompt_id:
@@ -248,15 +349,13 @@ def main():
 
     variants = ["with", "without"] if args.variant == "both" else [args.variant]
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = RESULTS_DIR / timestamp
-    run_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm")
 
     print(f"Test run: {timestamp}")
     budget_str = f"${args.budget}/run" if args.budget > 0 else "no limit"
     print(f"Model: {args.model}  |  Budget: {budget_str}  |  Runs: {args.runs}")
     print(f"Prompts: {len(prompts)}  |  Variants: {', '.join(variants)}")
-    print(f"Results: {run_dir}\n")
+    print(f"Results: results/{args.project}/\n")
 
     if args.dry_run:
         for prompt in prompts:
@@ -265,6 +364,7 @@ def main():
                       f"({prompt['id']})")
         return
 
+    harness_start = time.time()
     all_results = []
 
     for run_num in range(1, args.runs + 1):
@@ -273,7 +373,7 @@ def main():
 
         run_results = []
 
-        for prompt_info in prompts:
+        for prompt_idx, prompt_info in enumerate(prompts):
             entry = {
                 "prompt_id": prompt_info["id"],
                 "prompt": prompt_info["prompt"],
@@ -282,11 +382,25 @@ def main():
                 "timestamp": datetime.now().isoformat(),
             }
 
+            # Print the prompt being tested
+            print(f"\n{'─' * 80}")
+            print(f"Prompt [{prompt_info['id']}]:")
+            print(f"  {prompt_info['prompt']}")
+            print(f"{'─' * 80}")
+
+            # Result dir: results/{project}/{prompt-id}/
+            prompt_dir = RESULTS_DIR / args.project / prompt_info["id"]
+            prompt_dir.mkdir(parents=True, exist_ok=True)
+
+            # Save the prompt text (once)
+            with open(prompt_dir / "prompt.md", "w") as f:
+                f.write(f"# {prompt_info['id']}\n\n{prompt_info['prompt']}\n")
+
             for variant in variants:
                 folder = folders[variant]
-                reset_folder(folder, source_dirs)
-                print(f"Running [{variant}] {prompt_info['id']} "
-                      f"...", end=" ", flush=True)
+                reset_folder(folder)
+                print(f"\n▶ Running [{variant}] {prompt_info['id']} ...",
+                      flush=True)
 
                 raw = run_claude(prompt_info["prompt"], folder, args.model, args.budget)
                 metrics = extract_metrics(raw)
@@ -294,64 +408,45 @@ def main():
                 entry[f"{variant}_raw"] = raw
 
                 if "error" in metrics:
-                    print(f"ERROR: {metrics['error']}")
+                    print(f"  ✗ ERROR: {metrics['error']}")
                 else:
-                    print(f"${metrics['cost_usd']:.4f} | "
+                    fe = metrics.get("first_edit_seconds")
+                    fe_str = f" | first edit: {fe:.0f}s" if fe else ""
+                    print(f"  ✓ Done: ${metrics['cost_usd']:.4f} | "
                           f"{metrics['num_turns']} turns | "
-                          f"{metrics['duration_ms'] / 1000:.1f}s")
+                          f"{metrics['duration_ms'] / 1000:.1f}s"
+                          f"{fe_str}")
 
-            # Save solution text to files
-            for variant in variants:
-                metrics = entry.get(variant, {})
+                # Save result .md and metrics — one file per variant+model+timestamp
+                variant_name = "with-context-db" if variant == "with" else "without-context-db"
+                prefix = f"{timestamp}_{args.model}_{variant_name}"
+
                 if "error" not in metrics and metrics.get("result_text"):
-                    solution_file = run_dir / f"{prompt_info['id']}_{variant}.md"
-                    with open(solution_file, "w") as f:
-                        f.write(f"# {prompt_info['id']} — {variant}\n\n")
+                    result_file = prompt_dir / f"{prefix}.md"
+                    with open(result_file, "w") as f:
                         f.write(metrics["result_text"])
+                    print(f"  Saved: {result_file.relative_to(PROJECT_ROOT)}")
+
+                metrics_out = {
+                    "timestamp": timestamp,
+                    "model": args.model,
+                    "variant": variant_name,
+                    **{k: v for k, v in metrics.items() if k != "result_text"},
+                }
+                with open(prompt_dir / f"{prefix}_metrics.json", "w") as f:
+                    json.dump(metrics_out, f, indent=2)
 
             run_results.append(entry)
 
         all_results.extend(run_results)
         print_comparison(run_results)
 
-    # Save results
-    results_file = run_dir / "results.json"
-    with open(results_file, "w") as f:
-        # Don't save _raw in the summary (too large) — save separately
-        summary = []
-        for entry in all_results:
-            clean = {k: v for k, v in entry.items() if not k.endswith("_raw")}
-            summary.append(clean)
-
-        json.dump(summary, f, indent=2)
-
-    # Save raw results separately for debugging
-    raw_file = run_dir / "raw_results.json"
-    with open(raw_file, "w") as f:
-        json.dump(all_results, f, indent=2)
-
-    print(f"\nResults saved to {results_file}")
-
-    # If multiple runs, show aggregated stats
-    if args.runs > 1 and len(variants) == 2:
-        print("\n" + "=" * 60)
-        print("AGGREGATED RESULTS (mean across runs)")
-        print("=" * 60)
-
-        prompt_ids = list(dict.fromkeys(e["prompt_id"] for e in all_results))
-        for pid in prompt_ids:
-            entries = [e for e in all_results if e["prompt_id"] == pid]
-            for variant in variants:
-                costs = [e[variant]["cost_usd"] for e in entries
-                         if "error" not in e.get(variant, {"error": True})]
-                turns = [e[variant]["num_turns"] for e in entries
-                         if "error" not in e.get(variant, {"error": True})]
-                if costs:
-                    mean_cost = sum(costs) / len(costs)
-                    mean_turns = sum(turns) / len(turns)
-                    print(f"  {pid:<30} {variant:<10} "
-                          f"avg ${mean_cost:.4f}  avg {mean_turns:.1f} turns  "
-                          f"(n={len(costs)})")
+    # Print total time
+    harness_elapsed = time.time() - harness_start
+    minutes = int(harness_elapsed // 60)
+    seconds = int(harness_elapsed % 60)
+    print(f"\nResults saved to results/{args.project}/")
+    print(f"Total elapsed time: {minutes}m {seconds}s")
 
 
 if __name__ == "__main__":

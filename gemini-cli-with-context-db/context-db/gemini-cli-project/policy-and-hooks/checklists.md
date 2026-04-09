@@ -1,6 +1,5 @@
 ---
-description:
-  Cross-file checklists for adding tools and hook event types
+description: Cross-file checklists for adding tools and hook event types
 ---
 
 # Checklists
@@ -18,6 +17,13 @@ description:
 
 MCP tools bypass this — they load via `McpClientManager`.
 
+See also:
+
+- [tool-names.ts](../../../packages/core/src/tools/tool-names.ts) — canonical
+  tool name constants and legacy aliases.
+- [coreTools.ts](../../../packages/core/src/tools/definitions/coreTools.ts) —
+  tool declarations.
+
 ## Adding a hook event type
 
 1. Add to `HookEventName` enum in `packages/core/src/hooks/types.ts`.
@@ -32,3 +38,10 @@ MCP tools bypass this — they load via `McpClientManager`.
    and follow the pattern.
 
 BeforeTool hooks fire AFTER policy. Denied tools never trigger hooks.
+
+See also:
+
+- [hooks/types.ts](../../../packages/core/src/hooks/types.ts) — `HookEventName`
+  enum and input/output interfaces.
+- [coreToolHookTriggers.ts](../../../packages/core/src/core/coreToolHookTriggers.ts)
+  — where tool execution hooks fire from.

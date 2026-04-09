@@ -55,8 +55,14 @@ Switching models mid-session does not re-resolve tools.
 allowRedirection applies per-rule only. In chained commands, each command needs
 its own permission.
 
-See also: [Config and extension gotchas](../config-and-extensions/gotchas.md)
-for MCP server identity (clientKey hash), extension rule cleanup, and skill
-precedence — MCP-related gotchas span both files.
-[Safety gotchas](../safety/gotchas.md) for checker behavior that runs between
-policy evaluation and hook firing.
+See also:
+
+- [Config and extension gotchas](../config-and-extensions/gotchas.md) for MCP
+  server identity (clientKey hash), extension rule cleanup, and skill precedence
+  — MCP-related gotchas span both files.
+- [Safety gotchas](../safety/gotchas.md) for checker behavior that runs between
+  policy evaluation and hook firing.
+- [Policy engine docs](../../../docs/reference/policy-engine.md) — user-facing
+  policy reference.
+- [Hooks reference docs](../../../docs/hooks/reference.md) — user-facing hook
+  API reference.

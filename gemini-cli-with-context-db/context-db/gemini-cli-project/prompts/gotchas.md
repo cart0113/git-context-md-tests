@@ -27,8 +27,8 @@ references removed sections, and there is no validation.
 
 `toolRegistry.getAllToolNames()` filters tools based on config and approval mode
 before the prompt is built. The filtered list is what the prompt sees. Changes
-to filtering logic in `tool-registry.ts` silently change what tools appear in
-the prompt — verify both sides when modifying either.
+to filtering logic in `tool-registry.ts` (see `isActiveTool()`) silently change
+what tools appear in the prompt — verify both sides when modifying either.
 
 Notable filter: `ENTER_PLAN_MODE_TOOL_NAME` is removed when already in plan
 mode. `EXIT_PLAN_MODE_TOOL_NAME` is removed when NOT in plan mode.
@@ -53,5 +53,16 @@ be inconsistent. Verify model alignment when modifying compression in
 sections return empty strings — no error. This can silently remove critical
 instructions if an env var is set unexpectedly.
 
-See also: [Scheduler gotchas](../scheduler-gotchas.md) — "system prompt changes
-silently on model downgrade" is the trigger for snippet switching.
+See also:
+
+- [Scheduler gotchas](../scheduler-gotchas.md) — "system prompt changes silently
+  on model downgrade" is the trigger for snippet switching.
+- [snippets.ts](../../../packages/core/src/prompts/snippets.ts) — modern model
+  prompt snippets.
+- [snippets.legacy.ts](../../../packages/core/src/prompts/snippets.legacy.ts) —
+  legacy model prompt snippets (must stay in lockstep with modern).
+- [promptProvider.ts](../../../packages/core/src/prompts/promptProvider.ts) —
+  orchestrates snippet selection, GEMINI_SYSTEM_MD override, and section
+  composition.
+- [System prompt override docs](../../../docs/cli/system-prompt.md) —
+  user-facing docs for GEMINI_SYSTEM_MD.
