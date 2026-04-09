@@ -5,12 +5,12 @@
 
 /* Override default code font in Material for MkDocs to Fira Code */
 :root {
-    --md-code-font: "Fira Code", monospace, "Noto Color Emoji";
+  --md-code-font: 'Fira Code', monospace, 'Noto Color Emoji';
 }
 
 /* Override default regular font in Material for MkDocs to include Noto Color Emoji */
 :root {
-    --md-text-font: "Roboto", "Noto Color Emoji";
+  --md-text-font: 'Roboto', 'Noto Color Emoji';
 }
 
 .termynal-comment {
@@ -41,8 +41,10 @@ a[data-external-link]:not(:has(img)):not(.no-link-icon):not(.announce-link) {
   display: inline-block;
 }
 
-a[data-external-link]:not(:has(img)):not(.no-link-icon):not(.announce-link)::after {
-  content: "";
+a[data-external-link]:not(:has(img)):not(.no-link-icon):not(
+    .announce-link
+  )::after {
+  content: '';
   display: inline-block;
   width: 0.75em;
   height: 0.75em;
@@ -58,21 +60,27 @@ a[data-external-link]:not(:has(img)):not(.no-link-icon):not(.announce-link)::aft
   mask-repeat: no-repeat;
 }
 
-a[data-external-link]:not(:has(img)):not(.no-link-icon):not(.announce-link):hover::after {
+a[data-external-link]:not(:has(img)):not(.no-link-icon):not(
+    .announce-link
+  ):hover::after {
   opacity: 0.85;
 }
 
 /* Internal links opening in new tab: same-origin links with target=_blank
    JS sets data-internal-link on links pointing to the same site origin
    Skip image links, .no-link-icon, and .announce-link */
-a[data-internal-link][target="_blank"]:not(:has(img)):not(.no-link-icon):not(.announce-link) {
+a[data-internal-link][target='_blank']:not(:has(img)):not(.no-link-icon):not(
+    .announce-link
+  ) {
   /* For right to left languages */
   direction: ltr;
   display: inline-block;
 }
 
-a[data-internal-link][target="_blank"]:not(:has(img)):not(.no-link-icon):not(.announce-link)::after {
-  content: "";
+a[data-internal-link][target='_blank']:not(:has(img)):not(.no-link-icon):not(
+    .announce-link
+  )::after {
+  content: '';
   display: inline-block;
   width: 0.75em;
   height: 0.75em;
@@ -88,7 +96,9 @@ a[data-internal-link][target="_blank"]:not(:has(img)):not(.no-link-icon):not(.an
   mask-repeat: no-repeat;
 }
 
-a[data-internal-link][target="_blank"]:not(:has(img)):not(.no-link-icon):not(.announce-link):hover::after {
+a[data-internal-link][target='_blank']:not(:has(img)):not(.no-link-icon):not(
+    .announce-link
+  ):hover::after {
   opacity: 0.85;
 }
 
@@ -197,7 +207,7 @@ a.announce-link:hover {
   border-radius: 20px;
 }
 
-.announce-wrapper>div {
+.announce-wrapper > div {
   min-height: 40px;
   display: flex;
   align-items: center;
@@ -231,7 +241,7 @@ Inspired by Termynal's CSS tricks with modifications
   padding: 45px 5px 5px;
   position: relative;
   -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .screenshot img {
@@ -250,11 +260,21 @@ Inspired by Termynal's CSS tricks with modifications
   border-radius: 50%;
   /* A little hack to display the window buttons in one pseudo element. */
   background: #d9515d;
-  -webkit-box-shadow: 25px 0 0 #f4c025, 50px 0 0 #3ec930;
-          box-shadow: 25px 0 0 #f4c025, 50px 0 0 #3ec930;
+  -webkit-box-shadow:
+    25px 0 0 #f4c025,
+    50px 0 0 #3ec930;
+  box-shadow:
+    25px 0 0 #f4c025,
+    50px 0 0 #3ec930;
+}
+
+.doc-param-details .highlight {
+  overflow-x: auto;
+  width: 0;
+  min-width: 100%;
 }
 
 .md-typeset dfn {
-  border-bottom: .05rem dotted var(--md-default-fg-color--light);
+  border-bottom: 0.05rem dotted var(--md-default-fg-color--light);
   cursor: help;
 }

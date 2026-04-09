@@ -3,7 +3,8 @@ __pycache__/
 *.pyc
 .claude
 node_modules/
-results/
+# Copied repos in results (large, not needed in git)
+results/**/repo/
 context-db/agent-behavior
 context-db/writing-standards
 context-db/using-context-db

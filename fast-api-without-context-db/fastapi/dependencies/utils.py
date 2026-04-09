@@ -5,7 +5,6 @@ from collections.abc import (
     AsyncGenerator,
     AsyncIterable,
     AsyncIterator,
-    Awaitable,
     Callable,
     Generator,
     Iterable,
@@ -609,7 +608,6 @@ async def solve_dependencies(
     # people might be monkey patching this function (although that's not supported)
     async_exit_stack: AsyncExitStack,
     embed_body_fields: bool,
-    on_dependency_resolved: Callable[[Callable[..., Any], Any, bool], Awaitable[None]] | None = None,
 ) -> SolvedDependency:
     request_astack = request.scope.get("fastapi_inner_astack")
     assert isinstance(request_astack, AsyncExitStack), (
@@ -658,7 +656,6 @@ async def solve_dependencies(
             dependency_cache=dependency_cache,
             async_exit_stack=async_exit_stack,
             embed_body_fields=embed_body_fields,
-            on_dependency_resolved=on_dependency_resolved,
         )
         background_tasks = solved_result.background_tasks
         if solved_result.errors:
@@ -666,7 +663,6 @@ async def solve_dependencies(
             continue
         if sub_dependant.use_cache and sub_dependant.cache_key in dependency_cache:
             solved = dependency_cache[sub_dependant.cache_key]
-            from_cache = True
         elif (
             use_sub_dependant.is_gen_callable or use_sub_dependant.is_async_gen_callable
         ):
@@ -678,15 +674,10 @@ async def solve_dependencies(
                 stack=use_astack,
                 sub_values=solved_result.values,
             )
-            from_cache = False
         elif use_sub_dependant.is_coroutine_callable:
             solved = await call(**solved_result.values)
-            from_cache = False
         else:
             solved = await run_in_threadpool(call, **solved_result.values)
-            from_cache = False
-        if on_dependency_resolved is not None:
-            await on_dependency_resolved(call, solved, from_cache)
         if sub_dependant.name is not None:
             values[sub_dependant.name] = solved
         if sub_dependant.cache_key not in dependency_cache:

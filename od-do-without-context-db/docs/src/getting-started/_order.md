@@ -1,1 +1,0 @@
-quickstart.md installation.md configuration.md

@@ -365,9 +365,6 @@ def get_request_handler(
     strict_content_type: bool | DefaultPlaceholder = Default(True),
     stream_item_field: ModelField | None = None,
     is_json_stream: bool = False,
-    before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
-    after_endpoint: Callable[[Request, Any, dict[str, Any]], Awaitable[None]] | None = None,
-    on_dependency_resolved: Callable[[Callable[..., Any], Any, bool], Awaitable[None]] | None = None,
 ) -> Callable[[Request], Coroutine[Any, Any, Response]]:
     assert dependant.call is not None, "dependant.call must be a function"
     is_coroutine = dependant.is_coroutine_callable
@@ -464,13 +461,10 @@ def get_request_handler(
             dependency_overrides_provider=dependency_overrides_provider,
             async_exit_stack=async_exit_stack,
             embed_body_fields=embed_body_fields,
-            on_dependency_resolved=on_dependency_resolved,
         )
         errors = solved_result.errors
         assert dependant.call  # For types
         if not errors:
-            if before_endpoint is not None:
-                await before_endpoint(request, solved_result.values)
             # Shared serializer for stream items (JSONL and SSE).
             # Validates against stream_item_field when set, then
             # serializes to JSON bytes.
@@ -682,8 +676,6 @@ def get_request_handler(
                     values=solved_result.values,
                     is_coroutine=is_coroutine,
                 )
-                if after_endpoint is not None:
-                    await after_endpoint(request, raw_response, solved_result.values)
                 if isinstance(raw_response, Response):
                     if raw_response.background is None:
                         raw_response.background = solved_result.background_tasks
@@ -848,14 +840,9 @@ class APIRoute(routing.Route):
         generate_unique_id_function: Callable[["APIRoute"], str]
         | DefaultPlaceholder = Default(generate_unique_id),
         strict_content_type: bool | DefaultPlaceholder = Default(True),
-        deprecated_message: str | None = None,
-        before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
-        after_endpoint: Callable[[Request, Any, dict[str, Any]], Awaitable[None]] | None = None,
     ) -> None:
         self.path = path
         self.endpoint = endpoint
-        self.before_endpoint = before_endpoint
-        self.after_endpoint = after_endpoint
         self.stream_item_type: Any | None = None
         if isinstance(response_model, DefaultPlaceholder):
             return_annotation = get_typed_return_annotation(endpoint)
@@ -881,9 +868,6 @@ class APIRoute(routing.Route):
         self.response_model = response_model
         self.summary = summary
         self.response_description = response_description
-        self.deprecated_message = deprecated_message
-        if deprecated_message is not None:
-            deprecated = True
         self.deprecated = deprecated
         self.operation_id = operation_id
         self.response_model_include = response_model_include
@@ -1009,8 +993,6 @@ class APIRoute(routing.Route):
             strict_content_type=self.strict_content_type,
             stream_item_field=self.stream_item_field,
             is_json_stream=self.is_json_stream,
-            before_endpoint=self.before_endpoint,
-            after_endpoint=self.after_endpoint,
         )
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
@@ -1382,8 +1364,6 @@ class APIRouter(routing.Router):
         generate_unique_id_function: Callable[[APIRoute], str]
         | DefaultPlaceholder = Default(generate_unique_id),
         strict_content_type: bool | DefaultPlaceholder = Default(True),
-        before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
-        deprecated_message: str | None = None,
     ) -> None:
         route_class = route_class_override or self.route_class
         responses = responses or {}
@@ -1433,8 +1413,6 @@ class APIRouter(routing.Router):
             strict_content_type=get_value_or_default(
                 strict_content_type, self.strict_content_type
             ),
-            deprecated_message=deprecated_message,
-            before_endpoint=before_endpoint,
         )
         self.routes.append(route)
 
@@ -1467,8 +1445,6 @@ class APIRouter(routing.Router):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
-        before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         def decorator(func: DecoratedCallable) -> DecoratedCallable:
             self.add_api_route(
@@ -1497,8 +1473,6 @@ class APIRouter(routing.Router):
                 callbacks=callbacks,
                 openapi_extra=openapi_extra,
                 generate_unique_id_function=generate_unique_id_function,
-                before_endpoint=before_endpoint,
-                deprecated_message=deprecated_message,
             )
             return func
 
@@ -2185,20 +2159,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP GET operation.
@@ -2243,8 +2203,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def put(
@@ -2578,20 +2536,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP PUT operation.
@@ -2641,8 +2585,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def post(
@@ -2976,20 +2918,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP POST operation.
@@ -3039,8 +2967,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def delete(
@@ -3374,20 +3300,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP DELETE operation.
@@ -3432,8 +3344,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def options(
@@ -3767,20 +3677,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP OPTIONS operation.
@@ -3825,8 +3721,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def head(
@@ -4160,20 +4054,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP HEAD operation.
@@ -4223,8 +4103,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def patch(
@@ -4558,20 +4436,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP PATCH operation.
@@ -4621,8 +4485,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     def trace(
@@ -4956,20 +4818,6 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
-        before_endpoint: Annotated[
-            Callable[[Request, dict[str, Any]], Awaitable[None]] | None,
-            Doc(
-                """
-                An async callable invoked after dependency injection completes
-                but before the endpoint function executes.
-
-                Receives the `Request` and the resolved `values` dict.
-                Useful for logging, authorization checks, or request
-                enrichment that depends on resolved dependencies.
-                """
-            ),
-        ] = None,
-        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP TRACE operation.
@@ -5019,8 +4867,6 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
-            before_endpoint=before_endpoint,
-            deprecated_message=deprecated_message,
         )
 
     # TODO: remove this once the lifespan (or alternative) interface is improved

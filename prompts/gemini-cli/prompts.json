@@ -8,5 +8,15 @@
     "id": "add-tool-blocked-hook-event",
     "prompt": "Add a new hook event type called `ToolBlocked` that fires when the policy engine denies a tool call. It should include the tool name, the denial reason string, and the name of the policy rule that triggered the denial. Wire it so the hook fires from the policy evaluation path, not from the tool execution path. Follow existing patterns. Do not write or run tests. Do not use git commands.",
     "what_it_tests": "Requires understanding the tool execution flow to find where policy denials happen and wire the hook there — a different invocation point than other hooks. The model must understand the boundary between policy evaluation and tool execution."
+  },
+  {
+    "id": "add-subagent-max-depth",
+    "prompt": "Add a `maxDepth` guard to subagent spawning so that agents cannot recursively spawn subagents beyond a configurable depth. Track the current nesting depth in AgentLoopContext (starting at 0 for the root agent), increment it when a subagent is created via the local executor, and reject the spawn with a clear error message when the depth would exceed the limit. Add a `maxSubagentDepth` field to Config with a default of 3. Follow existing patterns. Do not write or run tests. Do not use git commands.",
+    "what_it_tests": "Requires tracing the full subagent lifecycle: how SubagentTool invokes LocalExecutor, how AgentLoopContext is constructed and forked for child agents, and where to intercept the spawn. The model must thread state through config, context, and executor without a single obvious entry point."
+  },
+  {
+    "id": "add-loop-detection-service",
+    "prompt": "Add a loop detection service that monitors the agent conversation for infinite loops. It should detect both simple cases (repeated identical tool calls) and subtler patterns where the agent keeps retrying without making progress. Track consecutive identical calls with a configurable threshold, integrate it into the core client loop, and halt the agent with a clear message when a loop is detected. Follow existing service patterns. Do not write or run tests. Do not use git commands.",
+    "what_it_tests": "This feature already fully exists (loopDetectionService.ts, client.ts integration, telemetry). Tests whether the model discovers the existing multi-tier implementation (heuristic + LLM-based detection + double-check) before writing code, or blindly reimplements it."
   }
 ]

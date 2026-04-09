@@ -1,14 +1,18 @@
 # Development - Contributing
 
-First, you might want to see the basic ways to [help FastAPI and get help](help-fastapi.md).
+First, you might want to see the basic ways to
+[help FastAPI and get help](help-fastapi.md).
 
 ## Developing
 
-If you already cloned the [fastapi repository](https://github.com/fastapi/fastapi) and you want to deep dive in the code, here are some guidelines to set up your environment.
+If you already cloned the
+[fastapi repository](https://github.com/fastapi/fastapi) and you want to deep
+dive in the code, here are some guidelines to set up your environment.
 
 ### Install requirements
 
-Create a virtual environment and install the required packages with [`uv`](https://github.com/astral-sh/uv):
+Create a virtual environment and install the required packages with
+[`uv`](https://github.com/astral-sh/uv):
 
 <div class="termy">
 
@@ -20,21 +24,28 @@ $ uv sync --extra all
 
 </div>
 
-It will install all the dependencies and your local FastAPI in your local environment.
+It will install all the dependencies and your local FastAPI in your local
+environment.
 
 ### Using your local FastAPI
 
-If you create a Python file that imports and uses FastAPI, and run it with the Python from your local environment, it will use your cloned local FastAPI source code.
+If you create a Python file that imports and uses FastAPI, and run it with the
+Python from your local environment, it will use your cloned local FastAPI source
+code.
 
-And if you update that local FastAPI source code when you run that Python file again, it will use the fresh version of FastAPI you just edited.
+And if you update that local FastAPI source code when you run that Python file
+again, it will use the fresh version of FastAPI you just edited.
 
-That way, you don't have to "install" your local version to be able to test every change.
+That way, you don't have to "install" your local version to be able to test
+every change.
 
 /// note | Technical Details
 
-This only happens when you install using `uv sync --extra all` instead of running `pip install fastapi` directly.
+This only happens when you install using `uv sync --extra all` instead of
+running `pip install fastapi` directly.
 
-That is because `uv sync --extra all` will install the local version of FastAPI in "editable" mode by default.
+That is because `uv sync --extra all` will install the local version of FastAPI
+in "editable" mode by default.
 
 ///
 
@@ -54,7 +65,8 @@ It will also auto-sort all your imports.
 
 ## Tests
 
-There is a script that you can run locally to test all the code and generate coverage reports in HTML:
+There is a script that you can run locally to test all the code and generate
+coverage reports in HTML:
 
 <div class="termy">
 
@@ -64,15 +76,20 @@ $ bash scripts/test-cov-html.sh
 
 </div>
 
-This command generates a directory `./htmlcov/`, if you open the file `./htmlcov/index.html` in your browser, you can explore interactively the regions of code that are covered by the tests, and notice if there is any region missing.
+This command generates a directory `./htmlcov/`, if you open the file
+`./htmlcov/index.html` in your browser, you can explore interactively the
+regions of code that are covered by the tests, and notice if there is any region
+missing.
 
 ## Docs
 
-First, make sure you set up your environment as described above, that will install all the requirements.
+First, make sure you set up your environment as described above, that will
+install all the requirements.
 
 ### Docs live
 
-During local development, there is a script that builds the site and checks for any changes, live-reloading:
+During local development, there is a script that builds the site and checks for
+any changes, live-reloading:
 
 <div class="termy">
 
@@ -110,9 +127,12 @@ $ mkdocs serve --dev-addr 127.0.0.1:8008
 
 #### Typer CLI (optional)
 
-The instructions here show you how to use the script at `./scripts/docs.py` with the `python` program directly.
+The instructions here show you how to use the script at `./scripts/docs.py` with
+the `python` program directly.
 
-But you can also use [Typer CLI](https://typer.tiangolo.com/typer-cli/), and you will get autocompletion in your terminal for the commands after installing completion.
+But you can also use [Typer CLI](https://typer.tiangolo.com/typer-cli/), and you
+will get autocompletion in your terminal for the commands after installing
+completion.
 
 If you install Typer CLI, you can install completion with:
 
@@ -131,11 +151,13 @@ Completion will take effect once you restart the terminal.
 
 The documentation uses [MkDocs](https://www.mkdocs.org/).
 
-And there are extra tools/scripts in place to handle translations in `./scripts/docs.py`.
+And there are extra tools/scripts in place to handle translations in
+`./scripts/docs.py`.
 
 /// tip
 
-You don't need to see the code in `./scripts/docs.py`, you just use it in the command line.
+You don't need to see the code in `./scripts/docs.py`, you just use it in the
+command line.
 
 ///
 
@@ -143,21 +165,26 @@ All the documentation is in Markdown format in the directory `./docs/en/`.
 
 Many of the tutorials have blocks of code.
 
-In most of the cases, these blocks of code are actual complete applications that can be run as is.
+In most of the cases, these blocks of code are actual complete applications that
+can be run as is.
 
-In fact, those blocks of code are not written inside the Markdown, they are Python files in the `./docs_src/` directory.
+In fact, those blocks of code are not written inside the Markdown, they are
+Python files in the `./docs_src/` directory.
 
-And those Python files are included/injected in the documentation when generating the site.
+And those Python files are included/injected in the documentation when
+generating the site.
 
 ### Docs for tests
 
-Most of the tests actually run against the example source files in the documentation.
+Most of the tests actually run against the example source files in the
+documentation.
 
 This helps to make sure that:
 
-* The documentation is up-to-date.
-* The documentation examples can be run as is.
-* Most of the features are covered by the documentation, ensured by test coverage.
+- The documentation is up-to-date.
+- The documentation examples can be run as is.
+- Most of the features are covered by the documentation, ensured by test
+  coverage.
 
 #### Apps and docs at the same time
 
@@ -173,80 +200,142 @@ $ fastapi dev tutorial001.py
 
 </div>
 
-as Uvicorn by default will use the port `8000`, the documentation on port `8008` won't clash.
+as Uvicorn by default will use the port `8000`, the documentation on port `8008`
+won't clash.
 
 ### Translations
 
-Help with translations is VERY MUCH appreciated! And it can't be done without the help from the community. 🌎 🚀
+Help with translations is VERY MUCH appreciated! And it can't be done without
+the help from the community. 🌎 🚀
 
-Translation pull requests are made by LLMs guided with prompts designed by the FastAPI team together with the community of native speakers for each supported language.
+Translation pull requests are made by LLMs guided with prompts designed by the
+FastAPI team together with the community of native speakers for each supported
+language.
 
 #### LLM Prompt per Language
 
-Each language has a directory: [https://github.com/fastapi/fastapi/tree/master/docs](https://github.com/fastapi/fastapi/tree/master/docs), in it you can see a file `llm-prompt.md` with the prompt specific for that language.
+Each language has a directory:
+[https://github.com/fastapi/fastapi/tree/master/docs](https://github.com/fastapi/fastapi/tree/master/docs),
+in it you can see a file `llm-prompt.md` with the prompt specific for that
+language.
 
-For example, for Spanish, the prompt is at: [`docs/es/llm-prompt.md`](https://github.com/fastapi/fastapi/blob/master/docs/es/llm-prompt.md).
+For example, for Spanish, the prompt is at:
+[`docs/es/llm-prompt.md`](https://github.com/fastapi/fastapi/blob/master/docs/es/llm-prompt.md).
 
-If you see mistakes in your language, you can make suggestions to the prompt in that file for your language, and request the specific pages you would like to re-generate after the changes.
+If you see mistakes in your language, you can make suggestions to the prompt in
+that file for your language, and request the specific pages you would like to
+re-generate after the changes.
 
 #### Reviewing Translation PRs
 
-You can also check the currently [existing pull requests](https://github.com/fastapi/fastapi/pulls) for your language. You can filter the pull requests by the ones with the label for your language. For example, for Spanish, the label is [`lang-es`](https://github.com/fastapi/fastapi/pulls?q=is%3Aopen+sort%3Aupdated-desc+label%3Alang-es+label%3Aawaiting-review).
+We don’t require approval from native speakers for translation PRs generated
+automatically by our translation workflow. However, you can still review them
+and suggest improvements to the LLM prompt for that language to make the future
+translations better.
 
-When reviewing a pull request, it's better not to suggest changes in the same pull request, because it is LLM generated, and it won't be possible to make sure that small individual changes are replicated in other similar sections, or that they are preserved when translating the same content again.
+You can check the currently
+[existing pull requests](https://github.com/fastapi/fastapi/pulls) for your
+language. You can filter the pull requests by the ones with the label for your
+language. For example, for Spanish, the label is
+[`lang-es`](https://github.com/fastapi/fastapi/pulls?q=is%3Aopen+sort%3Aupdated-desc+label%3Alang-es+label%3Aawaiting-review).
 
-Instead of adding suggestions to the translation PR, make the suggestions to the LLM prompt file for that language, in a new PR. For example, for Spanish, the LLM prompt file is at: [`docs/es/llm-prompt.md`](https://github.com/fastapi/fastapi/blob/master/docs/es/llm-prompt.md).
+You can also review already merged translation PRs. To do this, go to the
+[closed pull requests](https://github.com/fastapi/fastapi/pulls?q=is%3Apr+is%3Aclosed)
+and filter by your language label. For example, for Spanish, you can use
+[`lang-es`](https://github.com/fastapi/fastapi/pulls?q=is%3Apr+is%3Aclosed+label%3Alang-es).
+
+When reviewing a pull request, it's better not to suggest changes in the same
+pull request, because it is LLM generated, and it won't be possible to make sure
+that small individual changes are replicated in other similar sections, or that
+they are preserved when translating the same content again.
+
+Instead of adding suggestions to the translation PR, make the suggestions to the
+LLM prompt file for that language, in a new PR. For example, for Spanish, the
+LLM prompt file is at:
+[`docs/es/llm-prompt.md`](https://github.com/fastapi/fastapi/blob/master/docs/es/llm-prompt.md).
 
 /// tip
 
-Check the docs about [adding a pull request review](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-request-reviews) to approve it or request changes.
+Check the docs about
+[adding a pull request review](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-request-reviews)
+to approve it or request changes.
 
 ///
 
+PRs with suggestions to the language-specific LLM prompt require approval from
+at least one native speaker. Your help here is very much appreciated!
+
 #### Subscribe to Notifications for Your Language
 
-Check if there's a [GitHub Discussion](https://github.com/fastapi/fastapi/discussions/categories/translations) to coordinate translations for your language. You can subscribe to it, and when there's a new pull request to review, an automatic comment will be added to the discussion.
+Check if there's a
+[GitHub Discussion](https://github.com/fastapi/fastapi/discussions/categories/translations)
+to coordinate translations for your language. You can subscribe to it, and when
+there's a new pull request to review, an automatic comment will be added to the
+discussion.
 
-To check the 2-letter code for the language you want to translate, you can use the table [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
+To check the 2-letter code for the language you want to translate, you can use
+the table
+[List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
 
 #### Request a New Language
 
-Let's say that you want to request translations for a language that is not yet translated, not even some pages. For example, Latin.
+Let's say that you want to request translations for a language that is not yet
+translated, not even some pages. For example, Latin.
 
-* The first step would be for you to find other 2 people that would be willing to be reviewing translation PRs for that language with you.
-* Once there are at least 3 people that would be willing to commit to help maintain that language, you can continue the next steps.
-* Create a new discussion following the template.
-* Tag the other 2 people that will help with the language, and ask them to confirm there they will help.
+- The first step would be for you to find other 2 people that would be willing
+  to be reviewing translation PRs for that language with you.
+- Once there are at least 3 people that would be willing to commit to help
+  maintain that language, you can continue the next steps.
+- Create a new discussion following the template.
+- Tag the other 2 people that will help with the language, and ask them to
+  confirm there they will help.
 
-Once there are several people in the discussion, the FastAPI team can evaluate it and can make it an official translation.
+Once there are several people in the discussion, the FastAPI team can evaluate
+it and can make it an official translation.
 
-Then the docs will be automatically translated using LLMs, and the team of native speakers can review the translation, and help tweak the LLM prompts.
+Then the docs will be automatically translated using LLMs, and the team of
+native speakers can review the translation, and help tweak the LLM prompts.
 
-Once there's a new translation, for example if docs are updated or there's a new section, there will be a comment in the same discussion with the link to the new translation to review.
+Once there's a new translation, for example if docs are updated or there's a new
+section, there will be a comment in the same discussion with the link to the new
+translation to review.
 
 ## Automated Code and AI
 
-You are encouraged to use all the tools you want to do your work and contribute as efficiently as possible, this includes AI (LLM) tools, etc. Nevertheless, contributions should have meaningful human intervention, judgement, context, etc.
+You are encouraged to use all the tools you want to do your work and contribute
+as efficiently as possible, this includes AI (LLM) tools, etc. Nevertheless,
+contributions should have meaningful human intervention, judgement, context,
+etc.
 
-If the **human effort** put in a PR, e.g. writing LLM prompts, is **less** than the **effort we would need to put** to **review it**, please **don't** submit the PR.
+If the **human effort** put in a PR, e.g. writing LLM prompts, is **less** than
+the **effort we would need to put** to **review it**, please **don't** submit
+the PR.
 
-Think of it this way: we can already write LLM prompts or run automated tools ourselves, and that would be faster than reviewing external PRs.
+Think of it this way: we can already write LLM prompts or run automated tools
+ourselves, and that would be faster than reviewing external PRs.
 
 ### Closing Automated and AI PRs
 
-If we see PRs that seem AI generated or automated in similar ways, we'll flag them and close them.
+If we see PRs that seem AI generated or automated in similar ways, we'll flag
+them and close them.
 
-The same applies to comments and descriptions, please don't copy paste the content generated by an LLM.
+The same applies to comments and descriptions, please don't copy paste the
+content generated by an LLM.
 
 ### Human Effort Denial of Service
 
-Using automated tools and AI to submit PRs or comments that we have to carefully review and handle would be the equivalent of a [Denial-of-service attack](https://en.wikipedia.org/wiki/Denial-of-service_attack) on our human effort.
+Using automated tools and AI to submit PRs or comments that we have to carefully
+review and handle would be the equivalent of a
+[Denial-of-service attack](https://en.wikipedia.org/wiki/Denial-of-service_attack)
+on our human effort.
 
-It would be very little effort from the person submitting the PR (an LLM prompt) that generates a large amount of effort on our side (carefully reviewing code).
+It would be very little effort from the person submitting the PR (an LLM prompt)
+that generates a large amount of effort on our side (carefully reviewing code).
 
 Please don't do that.
 
-We'll need to block accounts that spam us with repeated automated PRs or comments.
+We'll need to block accounts that spam us with repeated automated PRs or
+comments.
 
 ### Use Tools Wisely
 
