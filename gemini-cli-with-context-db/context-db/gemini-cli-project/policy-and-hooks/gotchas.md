@@ -1,7 +1,7 @@
 ---
 description:
-  Non-obvious traps in policy, hooks, and tool registration — MCP naming, priority
-  math, stdout parsing, tool aliases, global deny behavior
+  Non-obvious traps in policy, hooks, and tool registration — MCP naming,
+  priority math, stdout parsing, tool aliases, global deny behavior
 ---
 
 # Policy and Hook Gotchas
@@ -15,14 +15,15 @@ code 2 = system block. Any other code = warning.
 
 ## MCP tool names split on first underscore
 
-Names follow mcp_{serverName}_{toolName}. The parser splits on the FIRST
-underscore after mcp_. Server names with underscores break policy matching — use
-hyphens.
+Names follow mcp*{serverName}*{toolName}. The parser splits on the FIRST
+underscore after mcp\_. Server names with underscores break policy matching —
+use hyphens.
 
 ## Policy priority is fractional
 
-Final priority = tier_base + (toml_priority / 1000). Priority 999 in User tier
-(base 3) = 3.999. Priority 1 in Admin tier (base 4) = 4.001.
+Final priority = tier_base + (toml_priority / 1000). Five tiers: Default=1,
+Extension=2, Workspace=3, User=4, Admin=5. Priority 999 in User tier (base 4) =
+4.999. Priority 1 in Admin tier (base 5) = 5.001.
 
 ## Global deny removes tool from model context
 
@@ -53,3 +54,9 @@ Switching models mid-session does not re-resolve tools.
 
 allowRedirection applies per-rule only. In chained commands, each command needs
 its own permission.
+
+See also: [Config and extension gotchas](../config-and-extensions/gotchas.md)
+for MCP server identity (clientKey hash), extension rule cleanup, and skill
+precedence — MCP-related gotchas span both files.
+[Safety gotchas](../safety/gotchas.md) for checker behavior that runs between
+policy evaluation and hook firing.

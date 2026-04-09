@@ -1,31 +1,27 @@
 ---
 description:
-  Build commands, test commands, preflight workflow, and workspace-specific
-  test invocation
+  Non-obvious build/test guidance — workspace-specific test paths, when to skip
+  preflight, nightly-only test suites
 ---
 
 # Build and Test
 
-## Build
+Commands are in root `package.json`. Key non-obvious points:
 
-- `npm install` — install deps.
-- `npm run build` — build packages only.
-- `npm run build:all` — packages + sandbox + VS Code companion.
-- `npm run start` — run in dev mode.
-- `npm run debug` — dev mode with Node.js inspector.
+## Workspace-specific tests
 
-## Test
+`npm test -w <pkg> -- <path>` — path must be relative to workspace root, not
+repo root (e.g.,
+`-w @google/gemini-cli-core -- src/routing/modelRouterService.test.ts`).
 
-- `npm run test` — unit tests (all packages).
-- `npm test -w <pkg> -- <path>` — workspace-specific. Path must be relative
-  to workspace root (e.g., `-w @google/gemini-cli-core -- src/routing/modelRouterService.test.ts`).
-- `npm run test:e2e` — integration/end-to-end tests.
-- Memory and perf tests: nightly only. Skip locally unless changing those areas.
+## Preflight is slow — use sparingly
 
-## Preflight
-
-`npm run preflight` — clean, install, build, lint, typecheck, test. Slow.
-Only run at the very end before PR. Use targeted commands (`npm run test`,
+`npm run preflight` runs clean, install, build, lint, typecheck, and test. Only
+run at the very end before PR. Use targeted commands (`npm run test`,
 `npm run lint`, workspace-specific tests) to iterate on fixes first.
 
-For non-code changes (docs, prompts), skip preflight entirely.
+Skip preflight entirely for non-code changes (docs, prompts).
+
+## Memory and perf tests are nightly-only
+
+Skip locally unless changing those areas.

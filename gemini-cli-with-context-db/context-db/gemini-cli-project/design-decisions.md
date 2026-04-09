@@ -16,9 +16,9 @@ requirement for clean stdout.
 
 ## Why tool registry is dynamic, not a static map
 
-Tools are registered at runtime and can be mutated. This enables MCP tools to
-be discovered lazily as servers connect, extension tools to load conditionally,
-and tools to be disabled via policy. A static map would require compile-time
+Tools are registered at runtime and can be mutated. This enables MCP tools to be
+discovered lazily as servers connect, extension tools to load conditionally, and
+tools to be disabled via policy. A static map would require compile-time
 knowledge of all tools, blocking extensibility.
 
 ## Why sandboxing is per-tool, not per-process
@@ -47,14 +47,15 @@ security model fragile.
 
 ## Why policy uses stable stringify for argument matching
 
-Policy converts tool arguments to a stable JSON string for regex matching,
-not JavaScript's default `JSON.stringify`. Stable stringify ensures consistent
-key ordering across runs, so regex patterns are predictable. Without this, the
-same rule could match on one run but not another.
+Policy converts tool arguments to a stable JSON string for regex matching, not
+JavaScript's default `JSON.stringify`. Stable stringify ensures consistent key
+ordering across runs, so regex patterns are predictable. Without this, the same
+rule could match on one run but not another.
 
 ## Why extension policies load at tier 2
 
-Built-in = tier 1, Extension = tier 2, User = tier 3, Admin = tier 4.
-Extensions override defaults but not user preferences. This acknowledges that
-extensions are more specific than built-ins but less critical than explicit
-user configuration.
+Default = tier 1, Extension = tier 2, Workspace = tier 3, User = tier 4, Admin =
+tier 5. Extensions override defaults but not workspace or user preferences. This
+five-tier hierarchy acknowledges that extensions are more specific than
+built-ins, workspace project config overrides extensions, explicit user
+configuration overrides workspace, and admin policies override everything.

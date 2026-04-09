@@ -19,17 +19,21 @@ around turns.
 
 ## MCP server identity is config hash
 
-`clientKey` = hash(name + config + extensionId). Config changes between
-reloads cause hash mismatch — old client not auto-disconnected. Disconnect
-explicitly before loading new config.
+`clientKey` = hash(name + config + extensionId). Config changes between reloads
+cause hash mismatch — old client not auto-disconnected. Disconnect explicitly
+before loading new config.
 
 ## Skill precedence silently overrides
 
 Load order: Built-in < Extensions < User < Workspace. Same-name skills collide
-without warning. Skill disable is case-insensitive — UI shows "MySkill",
-disable as "myskill".
+without warning. Skill disable is case-insensitive — UI shows "MySkill", disable
+as "myskill".
 
 ## Extension rules track source for cleanup
 
 Rules removed by `source` field on extension stop. Two extensions sharing a
 source ID breaks cleanup.
+
+See also: [Policy and hook gotchas](../policy-and-hooks/gotchas.md) for MCP tool
+naming, policy priority math, and tool registration traps — MCP-related gotchas
+span both files.

@@ -25,3 +25,6 @@ expansion path. Wrong order = stale invocation fetched from state.
 
 `promptProvider` selects `snippets` or `legacySnippets` based on model.
 Flash fallback silently changes the entire prompt structure with no rebuild.
+
+See also: [Prompt construction gotchas](prompts/gotchas.md) for snippet
+duplication traps.
