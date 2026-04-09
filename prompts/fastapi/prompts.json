@@ -3,5 +3,10 @@
     "id": "add-after-endpoint-hook",
     "prompt": "Add an `after_endpoint` callback parameter to `APIRoute` that fires after the endpoint function returns but before response validation. It should receive the request, the raw return value from the endpoint, and the resolved dependency values dict. Thread it through `APIRoute.__init__()`, `get_route_handler()`, and `get_request_handler()` only — follow the same pattern as the existing `before_endpoint` hook. Do not write or run tests.",
     "what_it_tests": "Requires finding 3 functions in routing.py (5000 lines), understanding the request lifecycle to place the hook correctly (after endpoint, before response validation), and following the existing before_endpoint pattern. The architecture.md section map and change_patterns.md point directly to the right locations."
+  },
+  {
+    "id": "add-deprecated-message-extension",
+    "prompt": "Add a `deprecated_message` string parameter to `APIRoute` that, when set, includes the message in the OpenAPI schema as an `x-deprecated-message` extension field on that route's operation. Thread it through `APIRoute.__init__()` and into the OpenAPI generation in `fastapi/openapi/utils.py`. The route should also automatically set `deprecated=True` when `deprecated_message` is provided. Do not write or run tests.",
+    "what_it_tests": "Requires modifying two files (routing.py and openapi/utils.py) and understanding how route metadata flows into OpenAPI generation. The architecture.md file map shows where get_openapi() and related functions live. Without context-db, finding the OpenAPI generation path in the codebase requires exploration."
   }
 ]

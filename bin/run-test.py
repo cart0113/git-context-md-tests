@@ -6,9 +6,8 @@ Runs test prompts via `claude -p` in both subfolders, captures JSON output,
 and compares token cost, duration, and tool call counts.
 
 Usage:
-    python3 bin/run-test.py --difficulty easy --model sonnet --runs 1
-    python3 bin/run-test.py --difficulty all --model haiku --runs 3
-    python3 bin/run-test.py --difficulty medium --prompt-id rate-limiter-dependency
+    python3 bin/run-test.py --project fastapi --model opus --runs 1
+    python3 bin/run-test.py --project oddo --prompt-id add-dashed-border-shape
 """
 
 import argparse
@@ -26,13 +25,13 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 PROJECTS = {
     "fastapi": {
-        "with": PROJECT_ROOT / "with-context-db",
-        "without": PROJECT_ROOT / "without-context-db",
+        "with": PROJECT_ROOT / "fast-api-with-context-db",
+        "without": PROJECT_ROOT / "fast-api-without-context-db",
         "source_dirs": ["fastapi", "fastapi-slim", "tests", "docs", "docs_src", "scripts"],
     },
     "oddo": {
-        "with": PROJECT_ROOT / "with-context-db-oddo",
-        "without": PROJECT_ROOT / "without-context-db-oddo",
+        "with": PROJECT_ROOT / "od-do-with-context-db",
+        "without": PROJECT_ROOT / "od-do-without-context-db",
         "source_dirs": ["src", "diagram_libs", "tests", "examples", "docs"],
     },
 }
@@ -63,25 +62,15 @@ def reset_folder(folder: Path, source_dirs: list[str]) -> None:
             )
 
 
-def load_prompts(project: str, difficulty: str) -> list[dict]:
-    """Load prompts for a given project and difficulty level."""
-    if difficulty == "all":
-        prompts = []
-        for level in ("easy", "medium", "hard"):
-            prompts.extend(load_prompts(project, level))
-        return prompts
-
-    path = PROMPTS_DIR / project / f"{difficulty}.json"
+def load_prompts(project: str) -> list[dict]:
+    """Load prompts for a given project."""
+    path = PROMPTS_DIR / project / "prompts.json"
     if not path.exists():
         print(f"Error: {path} not found", file=sys.stderr)
         sys.exit(1)
 
     with open(path) as f:
-        data = json.load(f)
-
-    for item in data:
-        item["difficulty"] = difficulty
-    return data
+        return json.load(f)
 
 
 def run_claude(prompt: str, cwd: Path, model: str, budget: float) -> dict:
@@ -152,7 +141,6 @@ def print_comparison(results: list[dict]) -> None:
 
     for entry in results:
         prompt_id = entry["prompt_id"]
-        difficulty = entry["difficulty"]
 
         for variant in ("with", "without"):
             metrics = entry.get(variant, {})
@@ -181,7 +169,7 @@ def print_comparison(results: list[dict]) -> None:
             time_diff = (w.get("duration_ms", 0) - wo.get("duration_ms", 0)) / 1000
 
             sign = lambda v: f"+{v}" if v > 0 else str(v)
-            print(f"  [{difficulty}] delta         {'':>10} "
+            print(f"  delta                        {'':>10} "
                   f"{'':>8} {sign(token_diff):>10} "
                   f"{'':>10} {sign(turn_diff):>6} "
                   f"{sign(round(time_diff, 1)):>9}")
@@ -207,12 +195,6 @@ def main():
         choices=list(PROJECTS.keys()),
         default="fastapi",
         help="Which project to test (default: fastapi)",
-    )
-    parser.add_argument(
-        "--difficulty",
-        choices=["easy", "medium", "hard", "all"],
-        default="easy",
-        help="Prompt difficulty level (default: easy)",
     )
     parser.add_argument(
         "--prompt-id",
@@ -255,7 +237,7 @@ def main():
     }
     source_dirs = project_config["source_dirs"]
 
-    prompts = load_prompts(args.project, args.difficulty)
+    prompts = load_prompts(args.project)
 
     if args.prompt_id:
         prompts = [p for p in prompts if p["id"] == args.prompt_id]
@@ -279,7 +261,7 @@ def main():
         for prompt in prompts:
             for variant in variants:
                 print(f"  Would run: [{variant}] {prompt['id']} "
-                      f"({prompt['difficulty']})")
+                      f"({prompt['id']})")
         return
 
     all_results = []
@@ -293,7 +275,6 @@ def main():
         for prompt_info in prompts:
             entry = {
                 "prompt_id": prompt_info["id"],
-                "difficulty": prompt_info["difficulty"],
                 "prompt": prompt_info["prompt"],
                 "model": args.model,
                 "run": run_num,
@@ -304,7 +285,7 @@ def main():
                 folder = folders[variant]
                 reset_folder(folder, source_dirs)
                 print(f"Running [{variant}] {prompt_info['id']} "
-                      f"({prompt_info['difficulty']})...", end=" ", flush=True)
+                      f"...", end=" ", flush=True)
 
                 raw = run_claude(prompt_info["prompt"], folder, args.model, args.budget)
                 metrics = extract_metrics(raw)

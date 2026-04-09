@@ -367,6 +367,8 @@ def get_request_handler(
     is_json_stream: bool = False,
     before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None] | None]
     | None = None,
+    after_endpoint: Callable[[Request, Any, dict[str, Any]], Awaitable[None] | None]
+    | None = None,
 ) -> Callable[[Request], Coroutine[Any, Any, Response]]:
     assert dependant.call is not None, "dependant.call must be a function"
     is_coroutine = dependant.is_coroutine_callable
@@ -682,6 +684,10 @@ def get_request_handler(
                     values=solved_result.values,
                     is_coroutine=is_coroutine,
                 )
+                if after_endpoint is not None:
+                    result = after_endpoint(request, raw_response, solved_result.values)
+                    if inspect.isawaitable(result):
+                        await result
                 if isinstance(raw_response, Response):
                     if raw_response.background is None:
                         raw_response.background = solved_result.background_tasks
@@ -848,6 +854,8 @@ class APIRoute(routing.Route):
         strict_content_type: bool | DefaultPlaceholder = Default(True),
         before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None] | None]
         | None = None,
+        after_endpoint: Callable[[Request, Any, dict[str, Any]], Awaitable[None] | None]
+        | None = None,
     ) -> None:
         self.path = path
         self.endpoint = endpoint
@@ -892,6 +900,7 @@ class APIRoute(routing.Route):
         self.generate_unique_id_function = generate_unique_id_function
         self.strict_content_type = strict_content_type
         self.before_endpoint = before_endpoint
+        self.after_endpoint = after_endpoint
         self.tags = tags or []
         self.responses = responses or {}
         self.name = get_name(endpoint) if name is None else name
@@ -1003,6 +1012,7 @@ class APIRoute(routing.Route):
             stream_item_field=self.stream_item_field,
             is_json_stream=self.is_json_stream,
             before_endpoint=self.before_endpoint,
+            after_endpoint=self.after_endpoint,
         )
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:

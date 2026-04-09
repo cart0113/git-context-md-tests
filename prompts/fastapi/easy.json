@@ -1,7 +1,0 @@
-[
-  {
-    "id": "health-endpoint",
-    "prompt": "Add a new endpoint `GET /health` that returns `{\"status\": \"ok\"}` and is excluded from the OpenAPI docs. Add it to a separate `APIRouter` in a new file `fastapi/routes/health.py` and include it in the main `FastAPI` app setup.",
-    "what_it_tests": "Basic router composition. With context-db the agent can read routing/registration_and_composition.md and openapi_docs/docs_endpoints.md to learn about include_in_schema. Without, it needs to grep for patterns."
-  }
-]
