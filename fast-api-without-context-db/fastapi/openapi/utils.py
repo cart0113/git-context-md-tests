@@ -254,6 +254,8 @@ def get_openapi_operation_metadata(
     operation["operationId"] = operation_id
     if route.deprecated:
         operation["deprecated"] = route.deprecated
+    if route.deprecated_message:
+        operation["x-deprecated-message"] = route.deprecated_message
     return operation
 
 

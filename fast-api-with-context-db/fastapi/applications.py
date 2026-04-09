@@ -1176,6 +1176,7 @@ class FastAPI(Starlette):
         response_description: str = "Successful Response",
         responses: dict[int | str, dict[str, Any]] | None = None,
         deprecated: bool | None = None,
+        deprecated_message: str | None = None,
         methods: list[str] | None = None,
         operation_id: str | None = None,
         response_model_include: IncEx | None = None,
@@ -1204,6 +1205,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=methods,
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -1232,6 +1234,7 @@ class FastAPI(Starlette):
         response_description: str = "Successful Response",
         responses: dict[int | str, dict[str, Any]] | None = None,
         deprecated: bool | None = None,
+        deprecated_message: str | None = None,
         methods: list[str] | None = None,
         operation_id: str | None = None,
         response_model_include: IncEx | None = None,
@@ -1261,6 +1264,7 @@ class FastAPI(Starlette):
                 response_description=response_description,
                 responses=responses,
                 deprecated=deprecated,
+                deprecated_message=deprecated_message,
                 methods=methods,
                 operation_id=operation_id,
                 response_model_include=response_model_include,
@@ -1710,6 +1714,17 @@ class FastAPI(Starlette):
                 """
             ),
         ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
+                """
+            ),
+        ] = None,
         operation_id: Annotated[
             str | None,
             Doc(
@@ -1922,6 +1937,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -2080,6 +2096,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -2300,6 +2327,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -2458,6 +2486,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -2678,6 +2717,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -2836,6 +2876,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -3051,6 +3102,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -3209,6 +3261,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -3424,6 +3487,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -3582,6 +3646,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -3797,6 +3872,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -3955,6 +4031,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -4175,6 +4262,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,
@@ -4333,6 +4421,17 @@ class FastAPI(Starlette):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -4548,6 +4647,7 @@ class FastAPI(Starlette):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             operation_id=operation_id,
             response_model_include=response_model_include,
             response_model_exclude=response_model_exclude,

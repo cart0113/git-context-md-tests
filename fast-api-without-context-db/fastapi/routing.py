@@ -846,6 +846,7 @@ class APIRoute(routing.Route):
         generate_unique_id_function: Callable[["APIRoute"], str]
         | DefaultPlaceholder = Default(generate_unique_id),
         strict_content_type: bool | DefaultPlaceholder = Default(True),
+        deprecated_message: str | None = None,
         before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
         after_endpoint: Callable[[Request, Any, dict[str, Any]], Awaitable[None]] | None = None,
     ) -> None:
@@ -878,6 +879,9 @@ class APIRoute(routing.Route):
         self.response_model = response_model
         self.summary = summary
         self.response_description = response_description
+        self.deprecated_message = deprecated_message
+        if deprecated_message is not None:
+            deprecated = True
         self.deprecated = deprecated
         self.operation_id = operation_id
         self.response_model_include = response_model_include
@@ -1377,6 +1381,7 @@ class APIRouter(routing.Router):
         | DefaultPlaceholder = Default(generate_unique_id),
         strict_content_type: bool | DefaultPlaceholder = Default(True),
         before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
+        deprecated_message: str | None = None,
     ) -> None:
         route_class = route_class_override or self.route_class
         responses = responses or {}
@@ -1426,6 +1431,7 @@ class APIRouter(routing.Router):
             strict_content_type=get_value_or_default(
                 strict_content_type, self.strict_content_type
             ),
+            deprecated_message=deprecated_message,
             before_endpoint=before_endpoint,
         )
         self.routes.append(route)
@@ -1460,6 +1466,7 @@ class APIRouter(routing.Router):
             generate_unique_id
         ),
         before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         def decorator(func: DecoratedCallable) -> DecoratedCallable:
             self.add_api_route(
@@ -1489,6 +1496,7 @@ class APIRouter(routing.Router):
                 openapi_extra=openapi_extra,
                 generate_unique_id_function=generate_unique_id_function,
                 before_endpoint=before_endpoint,
+                deprecated_message=deprecated_message,
             )
             return func
 
@@ -2188,6 +2196,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP GET operation.
@@ -2233,6 +2242,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def put(
@@ -2579,6 +2589,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP PUT operation.
@@ -2629,6 +2640,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def post(
@@ -2975,6 +2987,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP POST operation.
@@ -3025,6 +3038,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def delete(
@@ -3371,6 +3385,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP DELETE operation.
@@ -3416,6 +3431,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def options(
@@ -3762,6 +3778,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP OPTIONS operation.
@@ -3807,6 +3824,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def head(
@@ -4153,6 +4171,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP HEAD operation.
@@ -4203,6 +4222,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def patch(
@@ -4549,6 +4569,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP PATCH operation.
@@ -4599,6 +4620,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     def trace(
@@ -4945,6 +4967,7 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = None,
+        deprecated_message: str | None = None,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP TRACE operation.
@@ -4995,6 +5018,7 @@ class APIRouter(routing.Router):
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
             before_endpoint=before_endpoint,
+            deprecated_message=deprecated_message,
         )
 
     # TODO: remove this once the lifespan (or alternative) interface is improved

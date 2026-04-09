@@ -8,5 +8,10 @@
     "id": "add-deprecated-message-extension",
     "prompt": "Add a `deprecated_message` string parameter to `APIRoute` that, when set, includes the message in the OpenAPI schema as an `x-deprecated-message` extension field on that route's operation. Thread it through `APIRoute.__init__()` and into the OpenAPI generation in `fastapi/openapi/utils.py`. The route should also automatically set `deprecated=True` when `deprecated_message` is provided. Do not write or run tests.",
     "what_it_tests": "Requires modifying two files (routing.py and openapi/utils.py) and understanding how route metadata flows into OpenAPI generation. The architecture.md file map shows where get_openapi() and related functions live. Without context-db, finding the OpenAPI generation path in the codebase requires exploration."
+  },
+  {
+    "id": "add-dependency-resolved-event",
+    "prompt": "Add an `on_dependency_resolved` callback to `solve_dependencies()` in `fastapi/dependencies/utils.py` that fires each time a single dependency is successfully resolved (not when there are errors). It should receive the dependency callable, the resolved value, and whether it came from cache. Pass the callback through from `get_request_handler()` in `fastapi/routing.py`, which should accept it as a parameter. Do not write or run tests.",
+    "what_it_tests": "Requires understanding the dependency resolution loop inside solve_dependencies(), the cache check logic (cache key includes scopes — a gotcha), and how get_request_handler() passes options to solve_dependencies(). The architecture.md section map points to both functions. The gotchas.md documents the cache key structure."
   }
 ]

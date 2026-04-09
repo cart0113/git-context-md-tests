@@ -835,6 +835,7 @@ class APIRoute(routing.Route):
         response_description: str = "Successful Response",
         responses: dict[int | str, dict[str, Any]] | None = None,
         deprecated: bool | None = None,
+        deprecated_message: str | None = None,
         name: str | None = None,
         methods: set[str] | list[str] | None = None,
         operation_id: str | None = None,
@@ -884,6 +885,9 @@ class APIRoute(routing.Route):
         self.response_model = response_model
         self.summary = summary
         self.response_description = response_description
+        self.deprecated_message = deprecated_message
+        if deprecated_message and not deprecated:
+            deprecated = True
         self.deprecated = deprecated
         self.operation_id = operation_id
         self.response_model_include = response_model_include
@@ -1367,6 +1371,7 @@ class APIRouter(routing.Router):
         response_description: str = "Successful Response",
         responses: dict[int | str, dict[str, Any]] | None = None,
         deprecated: bool | None = None,
+        deprecated_message: str | None = None,
         methods: set[str] | list[str] | None = None,
         operation_id: str | None = None,
         response_model_include: IncEx | None = None,
@@ -1415,6 +1420,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=combined_responses,
             deprecated=deprecated or self.deprecated,
+            deprecated_message=deprecated_message,
             methods=methods,
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -1449,6 +1455,7 @@ class APIRouter(routing.Router):
         response_description: str = "Successful Response",
         responses: dict[int | str, dict[str, Any]] | None = None,
         deprecated: bool | None = None,
+        deprecated_message: str | None = None,
         methods: list[str] | None = None,
         operation_id: str | None = None,
         response_model_include: IncEx | None = None,
@@ -1479,6 +1486,7 @@ class APIRouter(routing.Router):
                 response_description=response_description,
                 responses=responses,
                 deprecated=deprecated,
+                deprecated_message=deprecated_message,
                 methods=methods,
                 operation_id=operation_id,
                 response_model_include=response_model_include,
@@ -1791,6 +1799,7 @@ class APIRouter(routing.Router):
                     response_description=route.response_description,
                     responses=combined_responses,
                     deprecated=route.deprecated or deprecated or self.deprecated,
+                    deprecated_message=route.deprecated_message,
                     methods=route.methods,
                     operation_id=route.operation_id,
                     response_model_include=route.response_model_include,
@@ -1991,6 +2000,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -2209,6 +2229,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["GET"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -2368,6 +2389,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -2591,6 +2623,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["PUT"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -2750,6 +2783,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -2973,6 +3017,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["POST"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -3132,6 +3177,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -3350,6 +3406,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["DELETE"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -3509,6 +3566,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -3727,6 +3795,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["OPTIONS"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -3886,6 +3955,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -4109,6 +4189,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["HEAD"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -4268,6 +4349,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -4491,6 +4583,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["PATCH"],
             operation_id=operation_id,
             response_model_include=response_model_include,
@@ -4650,6 +4743,17 @@ class APIRouter(routing.Router):
                 Mark this *path operation* as deprecated.
 
                 It will be added to the generated OpenAPI (e.g. visible at `/docs`).
+                """
+            ),
+        ] = None,
+        deprecated_message: Annotated[
+            str | None,
+            Doc(
+                """
+                A message explaining why this *path operation* is deprecated.
+
+                When set, the route is automatically marked as deprecated and the
+                message is included in the OpenAPI schema as `x-deprecated-message`.
                 """
             ),
         ] = None,
@@ -4873,6 +4977,7 @@ class APIRouter(routing.Router):
             response_description=response_description,
             responses=responses,
             deprecated=deprecated,
+            deprecated_message=deprecated_message,
             methods=["TRACE"],
             operation_id=operation_id,
             response_model_include=response_model_include,
