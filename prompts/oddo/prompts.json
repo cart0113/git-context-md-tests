@@ -1,7 +1,7 @@
 [
   {
     "id": "add-dashed-border-shape",
-    "prompt": "Add a new shape called `DashedBorder` to od-do. It should wrap any existing shape and draw a dashed rectangular border around it with configurable margin. It needs: (1) a `child` parameter that accepts any Shape instance, (2) a `margin` parameter (default 10) for spacing between the child and the dashed border, (3) the dashed border should use stroke_dasharray='8,4' in SVG, (4) the child shape should still be accessible via `.child` and its anchor points should still work. Add it to `src/od_do/shapes/`, add SVG rendering support in the SVG backend, and export it from `src/od_do/shapes/__init__.py`. Do not write or run tests.",
+    "prompt": "Add a new shape called `DashedBorder` to od-do. It should wrap any existing shape and draw a dashed rectangular border around it with configurable margin. It needs: (1) a `child` parameter that accepts any Shape instance, (2) a `margin` parameter (default 10) for spacing between the child and the dashed border, (3) the dashed border should use stroke_dasharray='8,4' in SVG, (4) the child shape should still be accessible via `.child` and its anchor points should still work. Add it to `src/od_do/shapes/`, add SVG rendering support in the SVG backend, and export it from `src/od_do/shapes/__init__.py`. Do not write or run tests. Do not commit.",
     "what_it_tests": "Requires understanding: shape auto-registration (shapes/base.py:58), the SVG backend isinstance dispatch chain, bounding box calculation, the Shape base class required properties, and how to add a new shape end-to-end (5 steps in extending/new-shapes.md). Cross-cutting across rendering/ and extending/ context-db folders."
   }
 ]

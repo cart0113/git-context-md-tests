@@ -43,28 +43,22 @@ PROJECTS = {
 
 
 def reset_folder(folder: Path, source_dirs: list[str]) -> None:
-    """Reset source code only — leave .claude/, context-db/, and bin/ alone."""
-    for subdir in source_dirs:
-        path = folder / subdir
-        if path.exists():
-            subprocess.run(
-                ["git", "checkout", "--", str(path)],
-                cwd=PROJECT_ROOT,
-                capture_output=True,
-            )
-            subprocess.run(
-                ["git", "clean", "-fd", str(path)],
-                cwd=PROJECT_ROOT,
-                capture_output=True,
-            )
-    # Also reset top-level files (pyproject.toml, etc.)
-    for f in folder.iterdir():
-        if f.is_file() and f.name != ".gitignore":
-            subprocess.run(
-                ["git", "checkout", "--", str(f)],
-                cwd=PROJECT_ROOT,
-                capture_output=True,
-            )
+    """Reset all tracked files and remove untracked files in the folder."""
+    # Restore all tracked files to committed state
+    subprocess.run(
+        ["git", "checkout", "--", str(folder)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+    )
+    # Remove untracked files (new files the agent created)
+    # Exclude .claude (symlink) and context-db (our knowledge base)
+    subprocess.run(
+        ["git", "clean", "-fd",
+         "--exclude=.claude", "--exclude=context-db/",
+         str(folder)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+    )
 
 
 def load_prompts(project: str) -> list[dict]:

@@ -1,7 +1,7 @@
 [
   {
     "id": "add-before-tool-timing-hook-event",
-    "prompt": "Add a new hook event type called `ToolTiming` that fires after every tool execution with the tool name, execution duration in milliseconds, and whether the tool was cached. Follow the existing hook event patterns. Do not write or run tests.",
+    "prompt": "Add a new hook event type called `ToolTiming` that fires after every tool execution with the tool name, execution duration in milliseconds, and whether the tool was cached. Follow the existing hook event patterns. Do not write or run tests. Do not commit.",
     "what_it_tests": "Requires following the 6-step checklist for adding a hook event type: types.ts enum, hookSystem.ts fire method, hookEventHandler.ts mapping, hookPlanner.ts planning, and invocation from the scheduler. The gotchas about hook stdout parsing and the design decision about hooks as external processes are relevant context."
   }
 ]
