@@ -31,18 +31,29 @@ FOLDERS = {
 
 
 def reset_folder(folder: Path) -> None:
-    """Reset any file changes the agent made, preserving .claude/ and context-db/."""
-    subprocess.run(
-        ["git", "checkout", "--", str(folder)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-    )
-    # Also clean up any untracked files the agent created
-    subprocess.run(
-        ["git", "clean", "-fd", str(folder)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-    )
+    """Reset FastAPI source code only — leave .claude/, context-db/, and bin/ alone."""
+    # Only reset the actual source code directories
+    for subdir in ("fastapi", "fastapi-slim", "tests", "docs", "docs_src", "scripts"):
+        path = folder / subdir
+        if path.exists():
+            subprocess.run(
+                ["git", "checkout", "--", str(path)],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+            )
+            subprocess.run(
+                ["git", "clean", "-fd", str(path)],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+            )
+    # Also reset top-level files (pyproject.toml, etc.)
+    for f in folder.iterdir():
+        if f.is_file() and f.name != ".gitignore":
+            subprocess.run(
+                ["git", "checkout", "--", str(f)],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+            )
 
 
 def load_prompts(difficulty: str) -> list[dict]:
