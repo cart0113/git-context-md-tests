@@ -425,6 +425,24 @@ export class HookSystem {
     }
   }
 
+  async fireToolTimingEvent(
+    toolName: string,
+    durationMs: number,
+    cached: boolean,
+  ): Promise<DefaultHookOutput | undefined> {
+    try {
+      const result = await this.hookEventHandler.fireToolTimingEvent(
+        toolName,
+        durationMs,
+        cached,
+      );
+      return result.finalOutput;
+    } catch (error) {
+      debugLogger.debug(`ToolTimingEvent failed for ${toolName}:`, error);
+      return undefined;
+    }
+  }
+
   async fireToolNotificationEvent(
     confirmationDetails: ToolCallConfirmationDetails,
   ): Promise<void> {
