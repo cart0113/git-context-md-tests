@@ -15,6 +15,7 @@ Extended shapes:
 """
 
 from .base import Rectangle, Circle, Block, OpenBlock
+from .dashed_border import DashedBorder
 
 from . import curves
 from . import polygon

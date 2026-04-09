@@ -142,61 +142,13 @@ def extract_metrics(raw: dict) -> dict:
     }
 
 
-def judge_solutions(prompt: str, what_it_tests: str, with_result: str,
-                    without_result: str, model: str) -> dict:
-    """Use Claude to judge solution quality for both variants."""
-    judge_prompt = f"""You are judging two solutions to the same coding task.
-Rate each solution on a 1-10 scale across three dimensions:
-
-1. **Correctness** — Does it solve the task correctly? Would it work?
-2. **Architecture** — Does it follow the project's patterns and conventions?
-3. **Completeness** — Does it handle edge cases, cleanup, testing as asked?
-
-## Task
-{prompt}
-
-## What this tests
-{what_it_tests}
-
-## Solution A (with context-db)
-{with_result[:8000]}
-
-## Solution B (without context-db)
-{without_result[:8000]}
-
-Respond in EXACTLY this JSON format, nothing else:
-{{"solution_a": {{"correctness": N, "architecture": N, "completeness": N, "notes": "brief"}}, "solution_b": {{"correctness": N, "architecture": N, "completeness": N, "notes": "brief"}}}}"""
-
-    cmd = [
-        "claude", "-p", judge_prompt,
-        "--output-format", "json",
-        "--model", model,
-        "--no-session-persistence",
-        "--dangerously-skip-permissions",
-    ]
-
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        raw = json.loads(result.stdout)
-        # The result text should be JSON — parse it
-        judge_text = raw.get("result", "")
-        # Try to extract JSON from the result
-        start = judge_text.find("{")
-        end = judge_text.rfind("}") + 1
-        if start >= 0 and end > start:
-            return json.loads(judge_text[start:end])
-    except Exception as e:
-        return {"error": str(e)}
-
-    return {"error": "could not parse judge response"}
-
 
 def print_comparison(results: list[dict]) -> None:
     """Print a formatted comparison table."""
-    print("\n" + "=" * 100)
+    print("\n" + "=" * 90)
     print(f"{'PROMPT':<30} {'VARIANT':<10} {'COST':>8} {'TOKENS IN':>10} "
-          f"{'TOKENS OUT':>10} {'TURNS':>6} {'TIME (s)':>9} {'QUALITY':>8}")
-    print("=" * 100)
+          f"{'TOKENS OUT':>10} {'TURNS':>6} {'TIME (s)':>9}")
+    print("=" * 90)
 
     for entry in results:
         prompt_id = entry["prompt_id"]
@@ -212,24 +164,11 @@ def print_comparison(results: list[dict]) -> None:
             cost = f"${metrics['cost_usd']:.4f}"
             time_s = f"{metrics['duration_ms'] / 1000:.1f}"
 
-            # Get quality score from judgment
-            quality = ""
-            judgment = entry.get("judgment", {})
-            if "error" not in judgment:
-                key = "solution_a" if variant == "with" else "solution_b"
-                scores = judgment.get(key, {})
-                if scores:
-                    avg = (scores.get("correctness", 0)
-                           + scores.get("architecture", 0)
-                           + scores.get("completeness", 0)) / 3
-                    quality = f"{avg:.1f}/10"
-
             print(f"{prompt_id:<30} {variant:<10} {cost:>8} "
                   f"{metrics['input_tokens']:>10,} "
                   f"{metrics['output_tokens']:>10,} "
                   f"{metrics['num_turns']:>6} "
-                  f"{time_s:>9} "
-                  f"{quality:>8}")
+                  f"{time_s:>9}")
 
         # Print delta row
         w = entry.get("with", {})
@@ -247,7 +186,7 @@ def print_comparison(results: list[dict]) -> None:
                   f"{'':>10} {sign(turn_diff):>6} "
                   f"{sign(round(time_diff, 1)):>9}")
 
-        print("-" * 100)
+        print("-" * 90)
 
     # Summary
     with_costs = [e["with"]["cost_usd"] for e in results
@@ -307,20 +246,7 @@ def main():
         action="store_true",
         help="Print what would run without executing",
     )
-    parser.add_argument(
-        "--skip-judge",
-        action="store_true",
-        help="Skip LLM judging of solution quality",
-    )
-    parser.add_argument(
-        "--judge-model",
-        default=None,
-        help="Model for judging (defaults to same as --model)",
-    )
     args = parser.parse_args()
-
-    if args.judge_model is None:
-        args.judge_model = args.model
 
     project_config = PROJECTS[args.project]
     folders = {
@@ -401,31 +327,6 @@ def main():
                         f.write(f"# {prompt_info['id']} — {variant}\n\n")
                         f.write(metrics["result_text"])
 
-            # Judge solutions if both variants ran successfully
-            if (not args.skip_judge
-                    and len(variants) == 2
-                    and "error" not in entry.get("with", {"error": True})
-                    and "error" not in entry.get("without", {"error": True})):
-                print(f"Judging [{prompt_info['id']}]...", end=" ", flush=True)
-                judgment = judge_solutions(
-                    prompt_info["prompt"],
-                    prompt_info.get("what_it_tests", ""),
-                    entry["with"].get("result_text", ""),
-                    entry["without"].get("result_text", ""),
-                    args.judge_model,
-                )
-                entry["judgment"] = judgment
-                if "error" not in judgment:
-                    a = judgment.get("solution_a", {})
-                    b = judgment.get("solution_b", {})
-                    a_avg = (a.get("correctness", 0) + a.get("architecture", 0)
-                             + a.get("completeness", 0)) / 3
-                    b_avg = (b.get("correctness", 0) + b.get("architecture", 0)
-                             + b.get("completeness", 0)) / 3
-                    print(f"with={a_avg:.1f}/10  without={b_avg:.1f}/10")
-                else:
-                    print(f"ERROR: {judgment['error']}")
-
             run_results.append(entry)
 
         all_results.extend(run_results)
@@ -446,17 +347,6 @@ def main():
     raw_file = run_dir / "raw_results.json"
     with open(raw_file, "w") as f:
         json.dump(all_results, f, indent=2)
-
-    # Save judgment summary
-    judgments = [{
-        "prompt_id": e["prompt_id"],
-        "difficulty": e["difficulty"],
-        "judgment": e.get("judgment", {}),
-    } for e in all_results if "judgment" in e]
-    if judgments:
-        judge_file = run_dir / "judgments.json"
-        with open(judge_file, "w") as f:
-            json.dump(judgments, f, indent=2)
 
     print(f"\nResults saved to {results_file}")
 

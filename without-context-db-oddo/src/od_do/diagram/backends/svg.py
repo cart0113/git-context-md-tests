@@ -22,6 +22,7 @@ from ...shapes.flowchart import (
 )
 from ...shapes.text import Text, TextBox, Label
 from ...shapes.table import Table, EntityTable, KeyValueTable
+from ...shapes.dashed_border import DashedBorder
 from ...colors import Color
 from ...markers import Marker, Arrow, Circle as CircleMarker, Square, Diamond, Bar
 
@@ -418,7 +419,9 @@ class SVGBackend(Backend):
 
     def _shape_to_svg(self, shape: Shape) -> str:
         """Convert a shape to SVG markup."""
-        if isinstance(shape, Circle):
+        if isinstance(shape, DashedBorder):
+            return self._dashed_border_to_svg(shape)
+        elif isinstance(shape, Circle):
             return self._circle_to_svg(shape)
         elif isinstance(shape, OpenBlock):
             return self._open_block_to_svg(shape)
@@ -550,6 +553,21 @@ class SVGBackend(Backend):
             )
 
         return result
+
+    def _dashed_border_to_svg(self, border: DashedBorder) -> str:
+        """Convert a DashedBorder to SVG markup."""
+        sw = border.stroke_width
+        stroke_attr = self._get_color_attrs(border.stroke, "stroke", "black")
+        rect_x = border.x + sw / 2
+        rect_y = border.y + sw / 2
+        rect_w = border.width - sw
+        rect_h = border.height - sw
+        return (
+            f'  <rect x="{rect_x}" y="{rect_y}" '
+            f'width="{rect_w}" height="{rect_h}" '
+            f'fill="none" {stroke_attr} stroke-width="{sw}" '
+            f'stroke-dasharray="8,4"/>\n'
+        )
 
     def _circle_to_svg(self, circle: Circle) -> str:
         """Convert a circle to SVG markup.

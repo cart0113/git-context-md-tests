@@ -23,3 +23,4 @@ from . import annotations
 from . import flowchart
 from . import text
 from . import table
+from . import dashed_border

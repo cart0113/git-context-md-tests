@@ -12,6 +12,7 @@ from ...shapes.curves import CurveBase, QuadraticBezier, CubicBezier, Arc, SemiC
 from ...shapes.polygon import RegularPolygon, Star
 from ...shapes.image import Image
 from ...shapes.annotations import DimensionLine, LeaderLine, Callout
+from ...shapes.dashed_border import DashedBorder
 from ...shapes.flowchart import (
     Diamond as DiamondShape,
     Parallelogram,
@@ -464,6 +465,8 @@ class SVGBackend(Backend):
             return self._keyvalue_table_to_svg(shape)
         elif isinstance(shape, Image):
             return self._image_to_svg(shape)
+        elif isinstance(shape, DashedBorder):
+            return self._dashed_border_to_svg(shape)
         if HAS_CIRCUIT_ELEMENTS:
             if isinstance(shape, WireJunction):
                 return self._wire_junction_to_svg(shape)
@@ -1118,6 +1121,16 @@ class SVGBackend(Backend):
         return (
             f'  <path d="{callout.svg_path()}" '
             f'{fill_attr} {stroke_attr} stroke-width="{callout.stroke_width}"/>\n'
+        )
+
+    def _dashed_border_to_svg(self, border: DashedBorder) -> str:
+        """Convert a dashed border to SVG markup."""
+        stroke_attr = self._get_color_attrs(border.stroke, "stroke", "black")
+        return (
+            f'  <rect x="{border.x}" y="{border.y}" '
+            f'width="{border.width}" height="{border.height}" '
+            f'fill="none" {stroke_attr} stroke-width="{border.stroke_width}" '
+            f'stroke-dasharray="8,4"/>\n'
         )
 
     def _cylinder_to_svg(self, cyl: Cylinder) -> str:
