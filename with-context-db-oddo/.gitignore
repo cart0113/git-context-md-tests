@@ -1,0 +1,78 @@
+# Claude Code local settings
+**/.claude/settings.local.json
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+
+# Type checking / linting
+.mypy_cache/
+.dmypy.json
+.pytype/
+.ruff_cache/
+
+# Documentation builds
+docs/_build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# macOS
+.DS_Store
+
+# Screenshots (cleanup after viewing)
+Screenshot*
+
+# Logs
+*.log
+
+# Temporary output files (in root directory)
+/test*.svg
+/diagram.svg
+output.*
+output/
+output/*
+
+# Symlinked context-db folders (personal, not committed)
+context-db/coding-standards/general-coding-standards
+context-db/writing-standards
+context-db/using-bruha
+context-db/agent-behavior
+context-db/od-do-project/overview.md
+context-db/using-context-db
+
+# Node modules (for prettier/bruha docs)
+node_modules/
+
+
+.playwright-mcp/
+package.json
+package-lock.json
+node_modules/
+.claude

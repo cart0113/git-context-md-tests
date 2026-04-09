@@ -24,16 +24,23 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 PROMPTS_DIR = PROJECT_ROOT / "prompts"
 RESULTS_DIR = PROJECT_ROOT / "results"
 
-FOLDERS = {
-    "with": PROJECT_ROOT / "with-context-db",
-    "without": PROJECT_ROOT / "without-context-db",
+PROJECTS = {
+    "fastapi": {
+        "with": PROJECT_ROOT / "with-context-db",
+        "without": PROJECT_ROOT / "without-context-db",
+        "source_dirs": ["fastapi", "fastapi-slim", "tests", "docs", "docs_src", "scripts"],
+    },
+    "oddo": {
+        "with": PROJECT_ROOT / "with-context-db-oddo",
+        "without": PROJECT_ROOT / "without-context-db-oddo",
+        "source_dirs": ["src", "diagram_libs", "tests", "examples", "docs"],
+    },
 }
 
 
-def reset_folder(folder: Path) -> None:
-    """Reset FastAPI source code only — leave .claude/, context-db/, and bin/ alone."""
-    # Only reset the actual source code directories
-    for subdir in ("fastapi", "fastapi-slim", "tests", "docs", "docs_src", "scripts"):
+def reset_folder(folder: Path, source_dirs: list[str]) -> None:
+    """Reset source code only — leave .claude/, context-db/, and bin/ alone."""
+    for subdir in source_dirs:
         path = folder / subdir
         if path.exists():
             subprocess.run(
@@ -56,15 +63,15 @@ def reset_folder(folder: Path) -> None:
             )
 
 
-def load_prompts(difficulty: str) -> list[dict]:
-    """Load prompts for a given difficulty level."""
+def load_prompts(project: str, difficulty: str) -> list[dict]:
+    """Load prompts for a given project and difficulty level."""
     if difficulty == "all":
         prompts = []
         for level in ("easy", "medium", "hard"):
-            prompts.extend(load_prompts(level))
+            prompts.extend(load_prompts(project, level))
         return prompts
 
-    path = PROMPTS_DIR / f"{difficulty}.json"
+    path = PROMPTS_DIR / project / f"{difficulty}.json"
     if not path.exists():
         print(f"Error: {path} not found", file=sys.stderr)
         sys.exit(1)
@@ -257,6 +264,12 @@ def print_comparison(results: list[dict]) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Context-db A/B test harness")
     parser.add_argument(
+        "--project",
+        choices=list(PROJECTS.keys()),
+        default="fastapi",
+        help="Which project to test (default: fastapi)",
+    )
+    parser.add_argument(
         "--difficulty",
         choices=["easy", "medium", "hard", "all"],
         default="easy",
@@ -309,7 +322,14 @@ def main():
     if args.judge_model is None:
         args.judge_model = args.model
 
-    prompts = load_prompts(args.difficulty)
+    project_config = PROJECTS[args.project]
+    folders = {
+        "with": project_config["with"],
+        "without": project_config["without"],
+    }
+    source_dirs = project_config["source_dirs"]
+
+    prompts = load_prompts(args.project, args.difficulty)
 
     if args.prompt_id:
         prompts = [p for p in prompts if p["id"] == args.prompt_id]
@@ -355,8 +375,8 @@ def main():
             }
 
             for variant in variants:
-                folder = FOLDERS[variant]
-                reset_folder(folder)
+                folder = folders[variant]
+                reset_folder(folder, source_dirs)
                 print(f"Running [{variant}] {prompt_info['id']} "
                       f"({prompt_info['difficulty']})...", end=" ", flush=True)
 
