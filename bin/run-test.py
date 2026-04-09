@@ -34,6 +34,11 @@ PROJECTS = {
         "without": PROJECT_ROOT / "od-do-without-context-db",
         "source_dirs": ["src", "diagram_libs", "tests", "examples", "docs"],
     },
+    "gemini-cli": {
+        "with": PROJECT_ROOT / "gemini-cli-with-context-db",
+        "without": PROJECT_ROOT / "gemini-cli-without-context-db",
+        "source_dirs": ["packages", "evals", "integration-tests", "scripts", "sea", "schemas"],
+    },
 }
 
 

@@ -367,6 +367,7 @@ def get_request_handler(
     is_json_stream: bool = False,
     before_endpoint: Callable[[Request, dict[str, Any]], Awaitable[None]] | None = None,
     after_endpoint: Callable[[Request, Any, dict[str, Any]], Awaitable[None]] | None = None,
+    on_dependency_resolved: Callable[[Callable[..., Any], Any, bool], Awaitable[None]] | None = None,
 ) -> Callable[[Request], Coroutine[Any, Any, Response]]:
     assert dependant.call is not None, "dependant.call must be a function"
     is_coroutine = dependant.is_coroutine_callable
@@ -463,6 +464,7 @@ def get_request_handler(
             dependency_overrides_provider=dependency_overrides_provider,
             async_exit_stack=async_exit_stack,
             embed_body_fields=embed_body_fields,
+            on_dependency_resolved=on_dependency_resolved,
         )
         errors = solved_result.errors
         assert dependant.call  # For types
