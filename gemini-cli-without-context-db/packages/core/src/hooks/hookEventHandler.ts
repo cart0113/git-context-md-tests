@@ -23,7 +23,6 @@ import {
   type BeforeModelInput,
   type AfterModelInput,
   type BeforeToolSelectionInput,
-  type ToolTimingInput,
   type NotificationType,
   type SessionStartSource,
   type SessionEndReason,
@@ -275,26 +274,6 @@ export class HookEventHandler {
       undefined,
       llmRequest,
     );
-  }
-
-  /**
-   * Fire a ToolTiming event
-   * Called after every tool execution with timing information
-   */
-  async fireToolTimingEvent(
-    toolName: string,
-    durationMs: number,
-    cached: boolean,
-  ): Promise<AggregatedHookResult> {
-    const input: ToolTimingInput = {
-      ...this.createBaseInput(HookEventName.ToolTiming),
-      tool_name: toolName,
-      duration_ms: durationMs,
-      cached,
-    };
-
-    const context: HookEventContext = { toolName };
-    return this.executeHooks(HookEventName.ToolTiming, input, context);
   }
 
   /**
